@@ -161,7 +161,7 @@ const LoginPage = () => {
             <Typography variant='h5' sx={{ fontWeight: 500, marginBottom: 1.5 }}>
               Welcome to Borey Management! 👋🏻
             </Typography>
-            <Typography variant='body2'>Please sign-in to your account and start the using the tool</Typography>
+            <Typography variant='body2'>Please sign-in to your user account and start the using the tool</Typography>
           </Box>
           <form noValidate autoComplete='off' onSubmit={e => e.preventDefault()}>
             <TextField autoFocus fullWidth id='email' label='Email' sx={{ marginBottom: 4 }} />
@@ -204,13 +204,22 @@ const LoginPage = () => {
             >
               Login
             </Button>
-            <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', justifyContent: 'center' }}>
-              <Typography variant='body2' sx={{ marginRight: 2 }}>
-                New on our platform?
+            <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flexWrap: 'wrap', justifyContent: 'center' }}>
+              <Typography variant='body1'>
+              Log in as 
+                <Link passHref href='/pages/a/login'>
+                  <LinkStyled>&nbsp;Admin&nbsp;</LinkStyled>
+                </Link>
+                OR
+                <Link passHref href='/pages/a/login'>
+                  <LinkStyled>&nbsp;Company&nbsp;</LinkStyled>
+                </Link>
               </Typography>
-              <Typography variant='body2'>
-                <Link passHref href='/pages/register'>
-                  <LinkStyled>Create an account</LinkStyled>
+              
+              <Typography variant='body2' sx={{marginTop: 4}}>
+                New on our platform? 
+                <Link passHref href='/pages/u/register'>
+                  <LinkStyled> Create an account</LinkStyled>
                 </Link>
               </Typography>
             </Box>

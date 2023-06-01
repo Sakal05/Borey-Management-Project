@@ -26,15 +26,17 @@ const NewsFeed = () => {
 
   return (
     <ApexChartWrapper sx={{ alignContent: 'center', alignItems: 'center' }}>
-      <Typography variant='h3' sx={{ alignItems: 'center' }}>
-        NewsFeed
-      </Typography>
-      <Grid container spacing={6} sx={{ m: 'auto', alignItems: 'center' }}>
+      <Grid container spacing={6} m={5} sx={{ display: 'flex', justifyContent:'center', alignItems: 'center'}}>
+        <Typography variant='h3' sx={{ alignItems: 'center', fontWeight: 700}}>
+          NewsFeed
+        </Typography>
+      </Grid>
+      <Grid container spacing={6} sx={{ m: 'auto', display: 'flex', justifyContent:'center', alignItems: 'center' }}>
         <Card>
           <TabContext value={value}>
             <TabList centered onChange={handleChange} aria-label='card navigation example'>
-              <Tab value='1' label='For You' />
-              <Tab value='2' label='Promotion' />
+              <Tab value='1' label='For You'  sx={{ fontWeight: '900' }}/>
+              <Tab value='2' label='Promotion'  sx={{ fontWeight: '900' }}/>
             </TabList>
             <CardContent sx={{ textAlign: 'center' }}>
               <TabPanel value='1' sx={{ p: 0 }}>
