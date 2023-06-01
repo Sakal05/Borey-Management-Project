@@ -15,6 +15,7 @@ import TabContext from '@mui/lab/TabContext'
 import Typography from '@mui/material/Typography'
 import CardContent from '@mui/material/CardContent'
 import NewsFeedCard from './newsFeedCard'
+import newFeedData from 'src/dummyData/newFeedData'
 
 const NewsFeed = () => {
   // ** State
@@ -23,7 +24,7 @@ const NewsFeed = () => {
   const handleChange = (event, newValue) => {
     setValue(newValue)
   }
-
+  
   return (
     <ApexChartWrapper sx={{ alignContent: 'center', alignItems: 'center' }}>
       <Grid container spacing={6} m={5} sx={{ display: 'flex', justifyContent:'center', alignItems: 'center'}}>
@@ -40,26 +41,22 @@ const NewsFeed = () => {
             </TabList>
             <CardContent sx={{ textAlign: 'center' }}>
               <TabPanel value='1' sx={{ p: 0 }}>
-                <Grid spacing={5} m={5}>
-                  <NewsFeedCard></NewsFeedCard>
-                </Grid>
-                <Grid spacing={5} m={5}>
-                  <NewsFeedCard></NewsFeedCard>
-                </Grid>
-
-                {/* <Typography variant='h6' sx={{ marginBottom: 2 }}>
-                  Header One
-                </Typography>
-                <Typography variant='body2' sx={{ marginBottom: 4 }}>
-                  Pudding tiramisu caramels. Gingerbread gummies danish chocolate bar toffee marzipan. Wafer wafer cake
-                  powder danish oat cake.
-                </Typography> */}
-                {/* <Button variant='contained'>Button One</Button> */}
+                  {newFeedData
+                  .filter(data => data.promotion === 'false')
+                  .map(data => (
+                    <Grid spacing={5} m={5} key={data.newFeedId}>
+                      <NewsFeedCard data={data} ></NewsFeedCard>
+                    </Grid>
+                  ))}
               </TabPanel>
               <TabPanel value='2' sx={{ p: 0 }}>
-                <Grid spacing={5} m={5}>
-                  <NewsFeedCard></NewsFeedCard>
-                </Grid>
+                  {newFeedData
+                  .filter(data => data.promotion === 'true')
+                  .map(data => (
+                    <Grid spacing={5} m={5} key={data.newFeedId}>
+                      <NewsFeedCard data={data} ></NewsFeedCard>
+                    </Grid>
+                  ))}
               </TabPanel>
             </CardContent>
           </TabContext>
