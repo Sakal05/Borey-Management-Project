@@ -27,11 +27,11 @@ const NewsFeed = () => {
   
   return (
     <ApexChartWrapper sx={{ alignContent: 'center', alignItems: 'center' }}>
-      <Grid container spacing={6} m={5} sx={{ display: 'flex', justifyContent:'center', alignItems: 'center'}}>
+      {/* <Grid container spacing={6} m={5} sx={{ display: 'flex', justifyContent:'center', alignItems: 'center'}}>
         <Typography variant='h3' sx={{ alignItems: 'center', fontWeight: 700}}>
           NewsFeed
         </Typography>
-      </Grid>
+      </Grid> */}
       <Grid container spacing={6} sx={{ m: 'auto', display: 'flex', justifyContent:'center', alignItems: 'center' }}>
         <Card>
           <TabContext value={value}>
