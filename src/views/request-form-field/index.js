@@ -49,64 +49,72 @@ const RequestFormField = () => {
   // ** State
   const [openAlert, setOpenAlert] = useState(true)
   const [imgSrc, setImgSrc] = useState('/images/avatars/1.png')
-  const [forMeStatus, setForMeStatus] = useState(true)
+  const [requestData, setRequestData] = useState({
+    category: '',
+    description: '',
+    file: {}
+  });
 
-  const onChange = file => {
+  const onFileChange = file => {
     const reader = new FileReader()
     const { files } = file.target
     if (files && files.length !== 0) {
       reader.onload = () => setImgSrc(reader.result)
       reader.readAsDataURL(files[0])
     }
+    setRequestData(prevData => ({
+    ...prevData,
+      file: files[0]
+    }))
   }
 
-  const handleUserStatus = e => {
-    const value = e.target.value
-    console.log(value)
-    setForMeStatus(value === 'for_me' ? true : false)
+  const onChange = e => {
+    const { name, value } = e.target;
+    setRequestData(prevData => ({
+      ...prevData,
+      [name]: value
+    }))
+  }
+
+  const onSubmit = e => {
+    e.preventDefault();
+    console.log(requestData);
+    const url = e.target.action;
+    // fetch(url, {
+    //   method: 'POST',
+    //   headers: {
+    //     'Content-Type': 'application/json'
+    //   },
+    //   body: JSON.stringify(requestData)
+    // })
+
+    console.log(requestData);
+    console.log(JSON.stringify(requestData))
+    
   }
 
   return (
     <CardContent>
-      <form>
+      <form onSubmit={onSubmit} action='apiLinkHere' method='POST'>
         <Grid container spacing={7}>
-          <Grid item xs={12} sm={12}>
+          <Grid item xs={12} sm={6}>
             <FormControl fullWidth>
-              <InputLabel>For</InputLabel>
-              <Select label='for' defaultValue='for_me' onChange={handleUserStatus}>
-                <MenuItem value='for_me'>For me</MenuItem>
-                <MenuItem value='for_other'>For other</MenuItem>
+              <InputLabel>Request Category</InputLabel>
+              <Select label='category' name='category' value={requestData.category} onChange={onChange}>
+                <MenuItem value='house'>House Material Request</MenuItem>
+                <MenuItem value='road'>Road Request</MenuItem>
+                <MenuItem value='environment'>Environment Request</MenuItem>
+                <MenuItem value='other'>Other</MenuItem>
               </Select>
             </FormControl>
           </Grid>
-          {!forMeStatus ? (
-            <>
-              <Grid item xs={12} sm={6}>
-                <TextField fullWidth label='Username' placeholder='johnDoe' defaultValue='johnDoe' />
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <TextField fullWidth label='Name' placeholder='John Doe' defaultValue='John Doe' />
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  fullWidth
-                  type='email'
-                  label='Email'
-                  placeholder='johnySinh@example.com'
-                  defaultValue='johnySinh@example.com'
-                />
-              </Grid>
-            </>
-          ) : (
-            <></>
-          )}
-
           <Grid item xs={12} sm={12}>
             <TextField
               fullWidth
               label='Request'
+              name='request'
               placeholder='Descripte your request here'
-              defaultValue='request_description'
+              onChange={onChange}
             />
           </Grid>
 
@@ -118,7 +126,7 @@ const RequestFormField = () => {
                   <input
                     hidden
                     type='file'
-                    onChange={onChange}
+                    onChange={onFileChange}
                     accept='image/png, image/jpeg'
                     id='account-settings-upload-image'
                   />
@@ -134,7 +142,7 @@ const RequestFormField = () => {
           </Grid>
 
           <Grid item xs={12}>
-            <Button variant='contained' sx={{ marginRight: 3.5 }}>
+            <Button variant='contained' sx={{ marginRight: 3.5 }} type='submit'>
               Submit Request
             </Button>
           </Grid>

@@ -49,8 +49,6 @@ const RequestForm = () => {
     setValue(newValue)
   }
 
-  const [userStatus, setUserStatus] = useState('For Me');
-
   return (
     <Card>
       <TabContext value={value}>
