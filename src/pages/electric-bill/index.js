@@ -8,11 +8,37 @@ import Box from '@mui/material/Box'
 import Grid from '@mui/material/Grid'
 import TextField from '@mui/material/TextField'
 import InputLabel from '@mui/material/InputLabel'
+import { useState } from 'react'
+import Router from 'next/router'
+import MenuItem from '@mui/material/MenuItem'
+import FormControl from '@mui/material/FormControl'
 
 // ** Icons Imports
 import HelpCircleOutline from 'mdi-material-ui/HelpCircleOutline'
+import Select from '@mui/material/Select'
 
 const ElectricBill = () => {
+  const [userId, setUserId] = useState('')
+  const [category, setCatetory] = useState('')
+
+  const handleUserId = e => {
+    setUserId(e.target.value)
+  }
+
+  const handleCatetory = e => {
+    setCatetory(e.target.value)
+  }
+
+  const handleNext = () => {
+    Router.push({
+      pathname: '/electric-bill-info',
+      query: {
+        userId: userId,
+        category: category
+      }
+    })
+  }
+  console.log(category)
   return (
     <Card>
       <CardContent
@@ -30,17 +56,26 @@ const ElectricBill = () => {
           <HelpCircleOutline sx={{ fontSize: '2rem' }} />
         </Avatar>
         <Typography variant='h6' sx={{ marginBottom: 2.75 }}>
-          Electric Bill
+          Electric/Water Bill
         </Typography>
-        <Grid item xs={12} sm={12}>
-          <InputLabel>User ID</InputLabel>
-          <TextField fullWidth placeholder='Enter user ID' defaultValue='Enter user ID' />
-        </Grid>
-
+        <Box sx={{ display: 'flex' }} fullWidth>
+          <Grid item xs={12} sm={12} sx={{ margin: 5 }}>
+            <TextField label='User ID' placeholder='Enter user ID' name='userId' onChange={handleUserId} />
+          </Grid>
+          <Grid item xs={12} sm={12} sx={{ margin: 5 }}>
+            <FormControl>
+              <InputLabel id='category-label'>Category</InputLabel>
+              <Select labelId='category-label' label='Category' name='category' onChange={handleCatetory}>
+                <MenuItem value='electric'>Electric Payment</MenuItem>
+                <MenuItem value='water'>Water Payment</MenuItem>
+              </Select>
+            </FormControl>
+          </Grid>
+        </Box>
         <Button
           variant='contained'
           sx={{ padding: theme => theme.spacing(1.75, 5.5), marginTop: 5 }}
-          href='/electric-bill-info'
+          onClick={handleNext}
         >
           Next
         </Button>

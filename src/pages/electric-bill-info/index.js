@@ -1,5 +1,5 @@
 // ** React Imports
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 
 // ** MUI Imports
 import Box from '@mui/material/Box'
@@ -15,10 +15,6 @@ import AccountOutline from 'mdi-material-ui/AccountOutline'
 import LockOpenOutline from 'mdi-material-ui/LockOpenOutline'
 import InformationOutline from 'mdi-material-ui/InformationOutline'
 
-// ** Demo Tabs Imports
-import TabInfo from 'src/views/account-settings/TabInfo'
-import TabAccount from 'src/views/account-settings/TabAccount'
-import TabSecurity from 'src/views/account-settings/TabSecurity'
 import ElectricBillInfoForm from 'src/views/electric-bill-info-form'
 
 // ** Third Party Styles Imports
@@ -43,37 +39,28 @@ const TabName = styled('span')(({ theme }) => ({
 }))
 
 const EnvironmentFixing = () => {
-  const [value, setValue] = useState('account')
-
-  const handleChange = (event, newValue) => {
-    setValue(newValue)
-  }
-
-  const [userStatus, setUserStatus] = useState('For Me');
+  
 
   return (
     <Card>
-      <TabContext value={value}>
+      <TabContext>
         <TabList
-          onChange={handleChange}
           aria-label='account-settings tabs'
           sx={{ borderBottom: theme => `1px solid ${theme.palette.divider}` }}
         >
           <Tab
-            value='account'
             label={
               <Box sx={{ display: 'flex', alignItems: 'center' }}>
                 <AccountOutline />
-                <TabName>Electric Bill Information</TabName>
+                <TabName>Electric/Water Bill Information</TabName>
               </Box>
             }
           />
         </TabList>
 
-        <TabPanel sx={{ p: 0 }} value='account'>
-          <ElectricBillInfoForm />
+        <TabPanel sx={{ p: 0 }}>
+          <ElectricBillInfoForm/>
         </TabPanel>
-        
       </TabContext>
     </Card>
   )

@@ -1,6 +1,5 @@
 // ** React Imports
-import { useState } from 'react'
-
+import { useState, useEffect } from 'react'
 // ** MUI Imports
 import Box from '@mui/material/Box'
 import Grid from '@mui/material/Grid'
@@ -17,58 +16,129 @@ import IconButton from '@mui/material/IconButton'
 import CardContent from '@mui/material/CardContent'
 import FormControl from '@mui/material/FormControl'
 import Button from '@mui/material/Button'
-
-// ** Icons Imports
-import Close from 'mdi-material-ui/Close'
-
-const ImgStyled = styled('img')(({ theme }) => ({
-  width: 120,
-  height: 120,
-  marginRight: theme.spacing(6.25),
-  borderRadius: theme.shape.borderRadius
-}))
-
-const ButtonStyled = styled(Button)(({ theme }) => ({
-  [theme.breakpoints.down('sm')]: {
-    width: '100%',
-    textAlign: 'center'
-  }
-}))
-
-
+import { useRouter } from 'next/router'
 
 const SecurityBillForm = () => {
-  // ** State
-  const [openAlert, setOpenAlert] = useState(true)
-  const [imgSrc, setImgSrc] = useState('/images/avatars/1.png')
-  const [forMeStatus, setForMeStatus] = useState(true)
+  const router = useRouter()
+  console.log(router.query.userId)
+  const userId = router.query.userId
 
-  const onChange = file => {
-    const reader = new FileReader()
-    const { files } = file.target
-    if (files && files.length !== 0) {
-      reader.onload = () => setImgSrc(reader.result)
-      reader.readAsDataURL(files[0])
+  const [securityInfo, setSecurityInfo] = useState({})
+  const [securityType, setSecurityType] = useState('')
+  const [securityPrice, setSecurityPrice] = useState('0')
+
+  const handleSecurityType = e => {
+    setSecurityType(e.target.value)
+    setSecurityInfo(prevData => ({
+      ...prevData,
+      securityType: securityType
+    }))
+
+    // fetchSecurityInfo();
+    /* Temp data set, reality need to implement data fetching to get price */
+    if (e.target.value === 'standard') {
+      setSecurityPrice('12000');
+    } else if (e.target.value === 'premium') {
+      setSecurityPrice('15000');
+    } else if (e.target.value === 'high-class') {
+      setSecurityPrice('20000');
+    } else {
+      setSecurityPrice('0');
     }
   }
+
+  const fetchSecurityInfo = () => {
+    fetch(`/security--info?type=${securityType}`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            Accept: 'application/json'
+          }
+        })
+         .then(res => res.json())
+         .then(data => {
+            if (data.message === 'fail') {
+              alert(data.message)
+            } else if (data.message ==='success') {
+              setSecurityPrice(data.price)
+            }
+          })
+  }
+
+  const getUserSecurityInfo = () => {
+    fetch(`/security-bill-info?userId=${userId}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        Accept: 'application/json'
+      }
+    })
+      .then(res => res.json())
+      .then(data => {
+        if (data.message === 'fail') {
+          alert(data.message)
+        } else if (data.message === 'success') {
+          setSecurityInfo(data)
+        }
+      })
+  }
+
+  console.log(securityInfo)
+  console.log(securityType)
+  console.log(securityPrice)
+
+  useEffect(() => {
+    // getUserElectricInfo();
+    setSecurityInfo({
+      userName: 'Sakal Samnang',
+      name: 'Sakal',
+      houseNum: '12',
+      totalBill: securityPrice,
+      paymentDeadline: '12/12/2022'
+    })
+  }, [])
 
   return (
     <CardContent>
       <form>
         <Grid container spacing={7}>
           <Grid item xs={12} sm={6}>
-            <TextField fullWidth label='Username' placeholder='Sakal123' defaultValue='Sakal123' />
+            <TextField
+              fullWidth
+              label='Username'
+              placeholder='Sakal123'
+              value={securityInfo.userName}
+              InputProps={{
+                readOnly: true
+              }}
+            />
           </Grid>
           <Grid item xs={12} sm={6}>
-            <TextField fullWidth label='Name' placeholder='Sakal' defaultValue='Sakal' />
+            <TextField
+              fullWidth
+              label='Name'
+              placeholder='Sakal'
+              value={securityInfo.name}
+              InputProps={{
+                readOnly: true
+              }}
+            />
           </Grid>
           <Grid item xs={12} sm={6}>
-            <TextField fullWidth label='House Number' placeholder='B12' defaultValue='B12' />
+            <TextField
+              fullWidth
+              label='House Number'
+              placeholder='B12'
+              value={securityInfo.houseNum}
+              InputProps={{
+                readOnly: true
+              }}
+            />
           </Grid>
-          <Grid item xs={12} sm={12}>
+          <Grid item xs={12} sm={6}>
             <FormControl fullWidth>
               <InputLabel>Security Type</InputLabel>
-              <Select label='security-type' defaultValue='standard'>
+              <Select label='security-type' value={securityType} onChange={handleSecurityType}>
                 <MenuItem value='standard'>Standard</MenuItem>
                 <MenuItem value='premium'>Premium</MenuItem>
                 <MenuItem value='high-class'>High Class</MenuItem>
@@ -80,8 +150,10 @@ const SecurityBillForm = () => {
             <TextField
               fullWidth
               label='Total Bill'
-              placeholder='120000r'
-              defaultValue='120000'
+              value={securityPrice}
+              InputProps={{
+                readOnly: true
+              }}
             />
           </Grid>
 

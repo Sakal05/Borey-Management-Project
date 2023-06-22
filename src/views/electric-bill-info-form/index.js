@@ -1,5 +1,5 @@
 // ** React Imports
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 
 // ** MUI Imports
 import Box from '@mui/material/Box'
@@ -11,80 +11,136 @@ import TextField from '@mui/material/TextField'
 import Typography from '@mui/material/Typography'
 import CardContent from '@mui/material/CardContent'
 import Button from '@mui/material/Button'
-
-// ** Icons Imports
-import Close from 'mdi-material-ui/Close'
-
-const ImgStyled = styled('img')(({ theme }) => ({
-  width: 120,
-  height: 120,
-  marginRight: theme.spacing(6.25),
-  borderRadius: theme.shape.borderRadius
-}))
-
-const ButtonStyled = styled(Button)(({ theme }) => ({
-  [theme.breakpoints.down('sm')]: {
-    width: '100%',
-    textAlign: 'center'
-  }
-}))
-
-const ResetButtonStyled = styled(Button)(({ theme }) => ({
-  marginLeft: theme.spacing(4.5),
-  [theme.breakpoints.down('sm')]: {
-    width: '100%',
-    marginLeft: 0,
-    textAlign: 'center',
-    marginTop: theme.spacing(4)
-  }
-}))
+import { useRouter } from 'next/router'
 
 const ElectricBillInfoForm = () => {
+  const router = useRouter()
+  const { userId, category } = router.query;
+
+  const category_name =
+    category === 'electric'
+    ? 'Electric Bill Payment'
+    : category === 'water'
+    ? 'Water Bill Payment'
+    : 'Unknown Category';
+  
+    const [electricInfo, setElectricInfo] = useState({});
+
+  const getUserElectricInfo = () => {
+    fetch(`/electric-bill-info?userId=${userId}&category=${category}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        Accept: 'application/json'
+      }
+    })
+      .then(res => res.json())
+      .then(data => {
+        if (data.message === 'fail') {
+          alert(data.message);
+        } else if (data.message === 'success') {
+          setElectricInfo(data);
+        }
+      })
+  }
+
+  useEffect(() => {
+    // getUserElectricInfo();
+    setElectricInfo({
+      userName: 'Sakal Samnang',
+      name: 'Sakal',
+      houseNum: '12',
+      totalBill: '12000',
+      paymentDeadline: '12/12/2022'
+    })
+  }, [])
+
+  console.log('ele info: ', electricInfo)
+
+  const data = electricInfo;
   // ** State
   const [openAlert, setOpenAlert] = useState(true)
   const [imgSrc, setImgSrc] = useState('/images/avatars/1.png')
-  const [forMeStatus, setForMeStatus] = useState(true)
 
-  const onChange = file => {
-    const reader = new FileReader()
-    const { files } = file.target
-    if (files && files.length !== 0) {
-      reader.onload = () => setImgSrc(reader.result)
-      reader.readAsDataURL(files[0])
-    }
-  }
-
-  const handleUserStatus = e => {
-    const value = e.target.value
-    console.log(value)
-    setForMeStatus(value === 'for_me' ? true : false)
+  const onSubmit = e => {
+    e.preventDefault()
+    const url = e.target.action
+    const SendData = data
+    console.log(SendData)
+    console.log(JSON.stringify(SendData))
+    fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(SendData)
+    })
   }
 
   return (
     <CardContent>
-      <form>
+      <form onSubmit={onSubmit} action='' method='POST'>
         <Grid container spacing={7}>
           <Grid item xs={12} sm={6}>
-            <TextField fullWidth label='Username' placeholder='Sakal123' defaultValue='Sakal123' />
+            {/* <Typography variant='h5'> User Name</Typography>
+            <Typography variant='body1'> {data.userName}</Typography> */}
+            <TextField
+              fullWidth
+              label='Username'
+              InputProps={{
+                readOnly: true
+              }}
+              name='userName'
+              value={data.userName}
+            />
           </Grid>
           <Grid item xs={12} sm={6}>
-            <TextField fullWidth label='Name' placeholder='Sakal' defaultValue='Sakal' />
+            <TextField
+              fullWidth
+              label='name'
+              InputProps={{
+                readOnly: true
+              }}
+              name='Name'
+              value={data.name}
+            />
           </Grid>
           <Grid item xs={12} sm={6}>
-            <TextField fullWidth label='House Number' placeholder='B12' defaultValue='B12' />
+            <TextField
+              fullWidth
+              label='House Number'
+              InputProps={{
+                readOnly: true
+              }}
+              name='houseNumber'
+              value={data.houseNum}
+            />
           </Grid>
-
+          <Grid item xs={12} sm={6}>
+            <TextField
+              fullWidth
+              label='Category'
+              InputProps={{
+                readOnly: true
+              }}
+              name='Category'
+              value={category_name}
+            />
+          </Grid>
           <Grid item xs={12} sm={12}>
             <TextField
               fullWidth
               label='Total Bill'
-              placeholder='120000r'
-              defaultValue='120000'
+              InputProps={{
+                readOnly: true
+              }}
+              name='totalBill'
+              value={data.totalBill}
             />
           </Grid>
 
           <Grid item xs={12}>
-            <Button variant='contained' sx={{ marginRight: 3.5 }}>
+            <Button variant='contained' sx={{ marginRight: 3.5 }} type='submit'>
               Pay Now
             </Button>
           </Grid>

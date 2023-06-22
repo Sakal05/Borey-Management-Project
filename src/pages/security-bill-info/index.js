@@ -1,5 +1,5 @@
 // ** React Imports
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 
 // ** MUI Imports
 import Box from '@mui/material/Box'
@@ -9,6 +9,8 @@ import TabPanel from '@mui/lab/TabPanel'
 import TabContext from '@mui/lab/TabContext'
 import { styled } from '@mui/material/styles'
 import MuiTab from '@mui/material/Tab'
+import {  } from 'next/router'
+
 
 // ** Icons Imports
 import AccountOutline from 'mdi-material-ui/AccountOutline'
@@ -43,24 +45,17 @@ const TabName = styled('span')(({ theme }) => ({
 }))
 
 const EnvironmentFixing = () => {
-  const [value, setValue] = useState('account')
-
-  const handleChange = (event, newValue) => {
-    setValue(newValue)
-  }
-
-  const [userStatus, setUserStatus] = useState('For Me');
+  
 
   return (
     <Card>
-      <TabContext value={value}>
+      <TabContext>
         <TabList
-          onChange={handleChange}
           aria-label='account-settings tabs'
           sx={{ borderBottom: theme => `1px solid ${theme.palette.divider}` }}
         >
           <Tab
-            value='account'
+            
             label={
               <Box sx={{ display: 'flex', alignItems: 'center' }}>
                 <AccountOutline />
@@ -70,7 +65,7 @@ const EnvironmentFixing = () => {
           />
         </TabList>
 
-        <TabPanel sx={{ p: 0 }} value='account'>
+        <TabPanel sx={{ p: 0 }} >
           <SecurityBillForm />
         </TabPanel>
         

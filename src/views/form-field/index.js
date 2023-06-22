@@ -51,25 +51,120 @@ const FormField = () => {
   const [openAlert, setOpenAlert] = useState(true)
   const [imgSrc, setImgSrc] = useState('/images/avatars/1.png')
   const [forMeStatus, setForMeStatus] = useState(true)
+  const [textFieldValue, setTextFieldValue] = useState('')
 
-  const onChange = file => {
+  const [formData, setFormData] = useState({
+    fullName: '',
+    userName: '',
+    email: '',
+    category: '',
+    problem: '',
+    file: {},
+  })
+
+
+  const onChangeFile = e => {
+    const file = e.target.files[0]
     const reader = new FileReader()
-    const { files } = file.target
-    if (files && files.length !== 0) {
-      reader.onload = () => setImgSrc(reader.result)
-      reader.readAsDataURL(files[0])
+    reader.onload = () => setImgSrc(reader.result)
+    reader.readAsDataURL(file)
+    console.log('File:', file)
+    setFormData(prevState => ({
+      ...prevState,
+      file: file
+    }))
+  }
+
+  const handleInput = e => {
+    const fieldName = e.target.name
+    const fieldValue = e.target.value
+
+    setFormData(prevState => ({
+      ...prevState,
+      [fieldName]: fieldValue
+    }))
+  }
+
+  const fetchDefaultUser = () => {
+    fetch('/api/users/default')
+        .then(res => res.json())
+        .then(data => {
+            setFormData(prevState => ({
+            ...prevState,
+              fullName: data.fullName,
+              userName: data.userName,
+              email: data.email
+            }))
+          })
+    
+  }
+
+  const submitForm = e => {
+    // We don't want the page to refresh
+    //e.preventDefault();
+
+    if (forMeStatus) {
+      setFormData(prevState => ({
+        ...prevState,
+        fullName: "Sakal Samnang",
+        userName: "Sakal05",
+        email: "sakal05@gmail.com"
+      }))
     }
+
+    const formURL = e.target.action
+    const data = new FormData()
+    // Turn our formData state into data we can use with a form submission
+    Object.entries(formData).forEach(([key, value]) => {
+      data.append(key, value)
+    })
+
+    console.log('Form Data:', formData);
+
+    // setFormData({
+    //       fullName: '',
+    //       userName: '',
+    //       email: '',
+    //       category: '',
+    //       problem: ''
+    //     })
+
+    // ===== POST the data to the URL of the form
+    // fetch(formURL, {
+    //   method: 'POST',
+    //   body: data,
+    //   headers: {
+    //     accept: 'application/json'
+    //   }
+    // }).then((response) => response.json())
+    // .then((data) => {
+    // setFormData({
+    //       fullName: '',
+    //       userName: '',
+    //       email: '',
+    //       category: '',
+    //       problem: ''
+    //     })
+    //   setFormSuccess(true)
+    //   setFormSuccessMessage(data.submission_text)
+    // })
   }
 
   const handleUserStatus = e => {
-    const value = e.target.value
-    console.log(value)
-    setForMeStatus(value === 'for_me' ? true : false)
+    setForMeStatus(e.target.value === 'for_me' ? true : false)
+    console.log('forMeStatus', e.target.value)
+    console.log('forMeStatus', forMeStatus)
+  }
+
+  const handleFullText = e => {
+    setTextFieldValue(e.target.value)
+    setFormValues(prevValues => ({ ...prevValues, problem: textFieldValue }))
+    console.log('textFieldValue', e.target.value)
   }
 
   return (
     <CardContent>
-      <form>
+      <form onSubmit={submitForm} method='POST' action='https://testingAPI'>
         <Grid container spacing={7}>
           <Grid item xs={12} sm={12}>
             <FormControl fullWidth>
@@ -83,18 +178,33 @@ const FormField = () => {
           {!forMeStatus ? (
             <>
               <Grid item xs={12} sm={6}>
-                <TextField fullWidth label='Username' placeholder='johnDoe' defaultValue='johnDoe' />
+                <TextField
+                  onChange={handleInput}
+                  fullWidth
+                  label='Username'
+                  name='userName'
+                  placeholder='johnDoe'
+                  defaultValue='johnDoe'
+                />
               </Grid>
               <Grid item xs={12} sm={6}>
-                <TextField fullWidth label='Name' placeholder='John Doe' defaultValue='John Doe' />
+                <TextField
+                  onChange={handleInput}
+                  fullWidth
+                  label='Name'
+                  name='fullName'
+                  placeholder='John Doe'
+                  defaultValue='John Doe'
+                />
               </Grid>
               <Grid item xs={12} sm={6}>
                 <TextField
                   fullWidth
                   type='email'
                   label='Email'
+                  name='email'
                   placeholder='johnySinh@example.com'
-                  defaultValue='johnySinh@example.com'
+                  onChange={handleInput}
                 />
               </Grid>
             </>
@@ -105,7 +215,7 @@ const FormField = () => {
           <Grid item xs={12} sm={12}>
             <FormControl fullWidth>
               <InputLabel>Category</InputLabel>
-              <Select label='category' defaultValue='electric' onChange={handleUserStatus}>
+              <Select label='category' name='category' onChange={handleInput}>
                 <MenuItem value='electric'>Electric Repair</MenuItem>
                 <MenuItem value='water_supply'>Water Repair</MenuItem>
                 <MenuItem value='house_hold'>House Hold Repair</MenuItem>
@@ -117,8 +227,9 @@ const FormField = () => {
             <TextField
               fullWidth
               label='Problem'
+              name='problem'
               placeholder='Descripte your problem here'
-              defaultValue='problem_description'
+              onChange={handleInput}
             />
           </Grid>
 
@@ -130,7 +241,7 @@ const FormField = () => {
                   <input
                     hidden
                     type='file'
-                    onChange={onChange}
+                    onChange={onChangeFile}
                     accept='image/png, image/jpeg'
                     id='account-settings-upload-image'
                   />
@@ -146,7 +257,7 @@ const FormField = () => {
           </Grid>
 
           <Grid item xs={12}>
-            <Button variant='contained' sx={{ marginRight: 3.5 }} href='/submission-form'>
+            <Button type='submit' variant='contained' sx={{ marginRight: 3.5 }} onClick={submitForm}>
               Submit
             </Button>
           </Grid>

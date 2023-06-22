@@ -50,8 +50,16 @@ const EnvironmentalFormField = () => {
   const [openAlert, setOpenAlert] = useState(true)
   const [imgSrc, setImgSrc] = useState('/images/avatars/1.png')
   const [forMeStatus, setForMeStatus] = useState(true)
+  const [formData, setFormData] = useState({
+    fullName: '',
+    userName: '',
+    email: '',
+    category: '',
+    problem: '',
+    file: {}
+  })
 
-  const onChange = file => {
+  const onFileChange = file => {
     const reader = new FileReader()
     const { files } = file.target
     if (files && files.length !== 0) {
@@ -66,9 +74,83 @@ const EnvironmentalFormField = () => {
     setForMeStatus(value === 'for_me' ? true : false)
   }
 
+  const handleInput = e => {
+    const fieldName = e.target.name
+    const fieldValue = e.target.value
+
+    setFormData(prevState => ({
+      ...prevState,
+      [fieldName]: fieldValue
+    }))
+  }
+
+  const fetchDefaultUser = () => {
+    fetch('/api/users/default')
+      .then(res => res.json())
+      .then(data => {
+        setFormData(prevState => ({
+          ...prevState,
+          fullName: data.fullName,
+          userName: data.userName,
+          email: data.email
+        }))
+      })
+  }
+
+  const submitForm = e => {
+    // We don't want the page to refresh
+    //e.preventDefault();
+
+    if (forMeStatus) {
+      setFormData(prevState => ({
+        ...prevState,
+        fullName: 'Sakal Samnang',
+        userName: 'Sakal05',
+        email: 'sakal05@gmail.com'
+      }))
+    }
+
+    const formURL = e.target.action
+    const data = new FormData()
+    // Turn our formData state into data we can use with a form submission
+    Object.entries(formData).forEach(([key, value]) => {
+      data.append(key, value)
+    })
+
+    console.log('Form Data:', formData)
+
+    // setFormData({
+    //       fullName: '',
+    //       userName: '',
+    //       email: '',
+    //       category: '',
+    //       problem: ''
+    //     })
+
+    // ===== POST the data to the URL of the form
+    // fetch(formURL, {
+    //   method: 'POST',
+    //   body: data,
+    //   headers: {
+    //     accept: 'application/json'
+    //   }
+    // }).then((response) => response.json())
+    // .then((data) => {
+    // setFormData({
+    //       fullName: '',
+    //       userName: '',
+    //       email: '',
+    //       category: '',
+    //       problem: ''
+    //     })
+    //   setFormSuccess(true)
+    //   setFormSuccessMessage(data.submission_text)
+    // })
+  }
+
   return (
     <CardContent>
-      <form>
+      <form onSubmit={submitForm} method='POST' action=''>
         <Grid container spacing={7}>
           <Grid item xs={12} sm={12}>
             <FormControl fullWidth>
@@ -82,18 +164,33 @@ const EnvironmentalFormField = () => {
           {!forMeStatus ? (
             <>
               <Grid item xs={12} sm={6}>
-                <TextField fullWidth label='Username' placeholder='johnDoe' defaultValue='johnDoe' />
+                <TextField
+                  onChange={handleInput}
+                  fullWidth
+                  label='Username'
+                  name='userName'
+                  placeholder='johnDoe'
+                  defaultValue='johnDoe'
+                />
               </Grid>
               <Grid item xs={12} sm={6}>
-                <TextField fullWidth label='Name' placeholder='John Doe' defaultValue='John Doe' />
+                <TextField
+                  onChange={handleInput}
+                  fullWidth
+                  label='Name'
+                  name='fullName'
+                  placeholder='John Doe'
+                  defaultValue='John Doe'
+                />
               </Grid>
               <Grid item xs={12} sm={6}>
                 <TextField
                   fullWidth
                   type='email'
                   label='Email'
+                  name='email'
                   placeholder='johnySinh@example.com'
-                  defaultValue='johnySinh@example.com'
+                  onChange={handleInput}
                 />
               </Grid>
             </>
@@ -104,7 +201,7 @@ const EnvironmentalFormField = () => {
           <Grid item xs={12} sm={12}>
             <FormControl fullWidth>
               <InputLabel>Category</InputLabel>
-              <Select label='category' defaultValue='Energy Efficiency'>
+              <Select label='category' name='category'  onChange={handleInput}>
                 <MenuItem value='Energy Efficiency'>Energy Efficiency</MenuItem>
                 <MenuItem value='Waste Management'>Waste Management</MenuItem>
                 <MenuItem value='house_hold'>House Hold Repair</MenuItem>
@@ -116,8 +213,9 @@ const EnvironmentalFormField = () => {
             <TextField
               fullWidth
               label='Problem'
+              name='problem'
               placeholder='Descripte your problem here'
-              defaultValue='problem_description'
+              onChange={handleInput}
             />
           </Grid>
 
@@ -129,7 +227,7 @@ const EnvironmentalFormField = () => {
                   <input
                     hidden
                     type='file'
-                    onChange={onChange}
+                    onChange={onFileChange}
                     accept='image/png, image/jpeg'
                     id='account-settings-upload-image'
                   />
@@ -145,10 +243,9 @@ const EnvironmentalFormField = () => {
           </Grid>
 
           <Grid item xs={12}>
-            <Button variant='contained' sx={{ marginRight: 3.5 }} href='/submission-form'>
+            <Button variant='contained' sx={{ marginRight: 3.5 }} type='submit'>
               Submit
             </Button>
-
           </Grid>
         </Grid>
       </form>

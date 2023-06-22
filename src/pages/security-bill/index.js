@@ -8,11 +8,29 @@ import Box from '@mui/material/Box'
 import Grid from '@mui/material/Grid'
 import TextField from '@mui/material/TextField'
 import InputLabel from '@mui/material/InputLabel'
+import { useState } from 'react'
+import Router from 'next/router'
 
 // ** Icons Imports
 import HelpCircleOutline from 'mdi-material-ui/HelpCircleOutline'
 
-const ElectricBill = () => {
+const SecurityBill = () => {
+
+  const [userId, setUserId] = useState('')
+
+  const handleUserId = e => {
+    setUserId(e.target.value)
+  }
+
+  const handleNext = () => {
+    Router.push({
+      pathname: '/security-bill-info/',
+      query: {
+        userId: userId
+      }
+    })
+  }
+
   return (
     <Card>
       <CardContent
@@ -36,12 +54,13 @@ const ElectricBill = () => {
             <InputLabel>User ID</InputLabel>
             <TextField
               fullWidth
+              name='userId'
               placeholder='Enter user ID'
-              defaultValue='Enter user ID'
+              onChange={handleUserId}
             />
           </Grid>
 
-        <Button variant='contained' sx={{ padding: theme => theme.spacing(1.75, 5.5), marginTop: 5 }} href='/security-bill-info'>
+        <Button variant='contained' sx={{ padding: theme => theme.spacing(1.75, 5.5), marginTop: 5 }} onClick={handleNext}>
           Next
         </Button>
       </CardContent>
@@ -49,4 +68,4 @@ const ElectricBill = () => {
   )
 }
 
-export default ElectricBill
+export default SecurityBill
