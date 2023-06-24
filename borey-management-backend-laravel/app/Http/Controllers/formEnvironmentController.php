@@ -3,14 +3,16 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Validator;
-use App\Models\formGeneral;
+use App\Models\formEnvironment;
 use App\Models\User;
-use App\Http\Resources\FormGeneralResource;
+use App\Http\Resources\FormEnvironmentResource;
 
-class formGeneralController extends Controller
+
+class formEnvironmentController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -19,12 +21,12 @@ class formGeneralController extends Controller
      */
     public function index()
     {
+            
         $userId = auth()->id();
-        $data = formGeneral::where('user_id', $userId)->latest()->get();
-        return response()->json([FormGeneralResource::collection($data), 'Programs fetched.']);
 
-        // $data = formGeneral::latest()->get();
-        // return response()->json([FormGeneralResource::collection($data), 'Programs fetched.']);
+        $data = formEnvironment::where('user_id', $userId)->latest()->get();
+
+        return response()->json([FormEnvironmentResource::collection($data), 'Programs fetched.']);
     }
 
     /**
@@ -47,13 +49,14 @@ class formGeneralController extends Controller
         if($validator->fails()){
             return response()->json($validator->errors());       
         }
-
+        
         $user = auth()->user();
         $username = $user->name;
 
         $imagePath = $request->file('image')->store('images'); // Save the image to the 'images' directory
 
-        $formGeneral = formGeneral::create([
+
+        $formEnvironment = formEnvironment::create([
             'user_id' => $user->id, // Associate the user ID
             'username' => $username,
             'name' => $request->name,
@@ -61,9 +64,9 @@ class formGeneralController extends Controller
             'category' => $request->category,
             'problem_description' => $request->problem_description,
             'path' => $imagePath, // Save the image path in the database
-         ]);
+        ]);
         
-        return response()->json(['Form created successfully.', new FormGeneralResource($formGeneral)]);
+        return response()->json(['Form created successfully.', new FormEnvironmentResource($formEnvironment)]);
     }
 
     /**
@@ -74,11 +77,11 @@ class formGeneralController extends Controller
      */
     public function show($id)
     {
-        $formGeneral = formGeneral::find($id);
-        if (is_null($formGeneral)) {
+        $formEnvironment = formEnvironment::find($id);
+        if (is_null($formEnvironment)) {
             return response()->json('Data not found', 404); 
         }
-        return response()->json([new FormGeneralResource($formGeneral)]);
+        return response()->json([new FormEnvironmentResource($formEnvironment)]);
     }
 
     /**
@@ -88,7 +91,7 @@ class formGeneralController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, formGeneral $formGeneral)
+    public function update(Request $request, formEnvironment $formEnvironment)
     {
         $validator = Validator::make($request->all(),[
             'name' => 'required|string|max:255',
@@ -96,7 +99,7 @@ class formGeneralController extends Controller
             'category' => 'required|string|max:255',
             'problem_description' => 'required',
             'new_image' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048', // Add validation for the new image
-        ]);
+    ]);
 
         if($validator->fails()){
             return response()->json($validator->errors());       
@@ -104,27 +107,27 @@ class formGeneralController extends Controller
 
         $user = auth()->user();
 
-        $formGeneral->user_id = $user->id;
-        $formGeneral->username = $user->name;
-        $formGeneral->name = $request->name;
-        $formGeneral->email = $request->email;
-        $formGeneral->category = $request->category;
-        $formGeneral->problem_description = $request->problem_description;
+        $formEnvironment->user_id = $user->id;
+        $formEnvironment->username = $user->name;
+        $formEnvironment->name = $request->name;
+        $formEnvironment->email = $request->email;
+        $formEnvironment->category = $request->category;
+        $formEnvironment->problem_description = $request->problem_description;
 
         if ($request->hasFile('new_image')) {
             // Delete the previous image if needed
-            if ($formGeneral->path) {
-                Storage::delete('images/' . $formGeneral->path);
+            if ($formEnvironment->path) {
+                Storage::delete('images/' . $formEnvironment->path);
             }
     
             // Store the new image
             $newImagePath = $request->file('new_image')->store('images');
-            $formGeneral->path = str_replace('images/', '', $newImagePath);
+            $formEnvironment->path = str_replace('images/', '', $newImagePath);
         }
 
-        $formGeneral->save();
-        
-        return response()->json(['Form updated successfully.', new FormGeneralResource($formGeneral)]);
+        $formEnvironment->save();
+
+        return response()->json(['Form updated successfully.', new FormEnvironmentResource($formEnvironment)]);
     }
 
     /**
@@ -133,16 +136,16 @@ class formGeneralController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function destroy(formGeneral $formGeneral)
+    public function destroy(formEnvironment $formEnvironment)
     {
+
         $user = auth()->user();
-        if ($user->id !== $formGeneral->user_id) {
+        if ($user->id !== $formEnvironment->user_id) {
         // User is not authorized to delete this form
         return response()->json('You are not authorized to delete this form', 403);
         }
+        $formEnvironment->delete();
 
-        $formGeneral->delete();
-        
         return response()->json('Form deleted successfully');
     }
 }
