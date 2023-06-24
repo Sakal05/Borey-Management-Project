@@ -22,7 +22,7 @@ class formEnvironmentController extends Controller
     public function index()
     {
             
-        $userId = auth()->id();
+        $userId = auth()->user()->user_id;
 
         $data = formEnvironment::where('user_id', $userId)->latest()->get();
 
@@ -38,7 +38,7 @@ class formEnvironmentController extends Controller
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(),[
-            'name' => 'required|string|max:255',
+            'fullname' => 'required|string|max:255',
             'email' => 'required|string|max:255',
             'category' => 'required|string|max:255',
             'problem_description' => 'required',
@@ -51,15 +51,15 @@ class formEnvironmentController extends Controller
         }
         
         $user = auth()->user();
-        $username = $user->name;
+        $username = $user->username;
 
         $imagePath = $request->file('image')->store('images'); // Save the image to the 'images' directory
 
 
         $formEnvironment = formEnvironment::create([
-            'user_id' => $user->id, // Associate the user ID
+            'user_id' => $user->user_id, // Associate the user ID
             'username' => $username,
-            'name' => $request->name,
+            'fullname' => $request->fullname,
             'email' => $request->email,
             'category' => $request->category,
             'problem_description' => $request->problem_description,
@@ -81,6 +81,13 @@ class formEnvironmentController extends Controller
         if (is_null($formEnvironment)) {
             return response()->json('Data not found', 404); 
         }
+
+        // Check if the authenticated user is the owner of the form
+        $user = auth()->user();
+        if ($user->user_id !== $formEnvironment->user_id) {
+            return response()->json('You are not authorized to view this form', 403);
+        }
+
         return response()->json([new FormEnvironmentResource($formEnvironment)]);
     }
 
@@ -94,7 +101,7 @@ class formEnvironmentController extends Controller
     public function update(Request $request, formEnvironment $formEnvironment)
     {
         $validator = Validator::make($request->all(),[
-            'name' => 'required|string|max:255',
+            'fullname' => 'required|string|max:255',
             'email' => 'required|string|max:255',
             'category' => 'required|string|max:255',
             'problem_description' => 'required',
@@ -107,9 +114,9 @@ class formEnvironmentController extends Controller
 
         $user = auth()->user();
 
-        $formEnvironment->user_id = $user->id;
-        $formEnvironment->username = $user->name;
-        $formEnvironment->name = $request->name;
+        $formEnvironment->user_id;
+        $formEnvironment->username;
+        $formEnvironment->fullname = $request->fullname;
         $formEnvironment->email = $request->email;
         $formEnvironment->category = $request->category;
         $formEnvironment->problem_description = $request->problem_description;

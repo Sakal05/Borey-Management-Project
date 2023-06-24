@@ -14,14 +14,17 @@ class CreateFormGeneralsTable extends Migration
     public function up()
     {
         Schema::create('form_generals', function (Blueprint $table) {
-            $table->id();
+            $table->increments('id');
+            $table->string('user_id');
             $table->string('username');
-            $table->string('name');
+            $table->string('fullname');
             $table->string('email');
             $table->string('category');
             $table->string('problem_description');
             $table->string('path');
             $table->timestamps();
+
+            $table->foreign('user_id')->references('user_id')->on('users')->onDelete('cascade');
         });
     }
 

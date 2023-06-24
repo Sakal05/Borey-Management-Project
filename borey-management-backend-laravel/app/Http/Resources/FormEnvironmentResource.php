@@ -17,7 +17,7 @@ class FormEnvironmentResource extends JsonResource
         return [
             'id' => $this->id,
             'username' => $this->username,
-            'name' => $this->name,
+            'fullname' => $this->fullname,
             'email' => $this->email,
             'category' => $this->category,
             'problem_description' => $this->problem_description,

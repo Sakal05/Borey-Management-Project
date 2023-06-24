@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Validator;
@@ -19,7 +20,8 @@ class formGeneralController extends Controller
      */
     public function index()
     {
-        $userId = auth()->id();
+        $userId = auth()->user()->user_id;
+
         $data = formGeneral::where('user_id', $userId)->latest()->get();
         return response()->json([FormGeneralResource::collection($data), 'Programs fetched.']);
 
@@ -36,7 +38,7 @@ class formGeneralController extends Controller
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(),[
-            'name' => 'required|string|max:255',
+            'fullname' => 'required|string|max:255',
             'email' => 'required|string|max:255',
             'category' => 'required|string|max:255',
             'problem_description' => 'required',
@@ -49,14 +51,14 @@ class formGeneralController extends Controller
         }
 
         $user = auth()->user();
-        $username = $user->name;
+        $username = $user->username;
 
         $imagePath = $request->file('image')->store('images'); // Save the image to the 'images' directory
 
         $formGeneral = formGeneral::create([
-            'user_id' => $user->id, // Associate the user ID
+            'user_id' => $user->user_id, // Associate the user ID
             'username' => $username,
-            'name' => $request->name,
+            'fullname' => $request->fullname,
             'email' => $request->email,
             'category' => $request->category,
             'problem_description' => $request->problem_description,
@@ -78,6 +80,13 @@ class formGeneralController extends Controller
         if (is_null($formGeneral)) {
             return response()->json('Data not found', 404); 
         }
+
+        // Check if the authenticated user is the owner of the form
+        $user = auth()->user();
+        if ($user->user_id !== $formGeneral->user_id) {
+            return response()->json('You are not authorized to view this form', 403);
+        }
+
         return response()->json([new FormGeneralResource($formGeneral)]);
     }
 
@@ -91,7 +100,7 @@ class formGeneralController extends Controller
     public function update(Request $request, formGeneral $formGeneral)
     {
         $validator = Validator::make($request->all(),[
-            'name' => 'required|string|max:255',
+            'fullname' => 'required|string|max:255',
             'email' => 'required|string|max:255',
             'category' => 'required|string|max:255',
             'problem_description' => 'required',
@@ -104,9 +113,9 @@ class formGeneralController extends Controller
 
         $user = auth()->user();
 
-        $formGeneral->user_id = $user->id;
-        $formGeneral->username = $user->name;
-        $formGeneral->name = $request->name;
+        $formGeneral->user_id;
+        $formGeneral->username;
+        $formGeneral->fullname = $request->fullname;
         $formGeneral->email = $request->email;
         $formGeneral->category = $request->category;
         $formGeneral->problem_description = $request->problem_description;

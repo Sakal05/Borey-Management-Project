@@ -15,16 +15,16 @@ class CreateFormEnvironmentsTable extends Migration
     {
         Schema::create('form_environments', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('user_id');
+            $table->string('user_id');
             $table->string('username');
-            $table->string('name');
+            $table->string('fullname');
             $table->string('email');
             $table->string('category');
             $table->string('problem_description');
             $table->string('path');
             $table->timestamps();
 
-            $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
+            $table->foreign('user_id')->references('user_id')->on('users')->onDelete('cascade');
         
         });
     }

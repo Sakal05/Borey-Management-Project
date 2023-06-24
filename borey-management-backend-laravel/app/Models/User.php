@@ -18,9 +18,11 @@ class User extends Authenticatable
      * @var array<int, string>
      */
     protected $fillable = [
-        'name',
+        'username',
+        'fullname',
         'email',
         'password',
+        'date_registered',
     ];
 
     /**
@@ -41,4 +43,35 @@ class User extends Authenticatable
     protected $casts = [
         'email_verified_at' => 'datetime',
     ];
+
+    /**
+     * Boot the model.
+     *
+     * @return void
+     */
+    protected static function booted()
+    {
+        static::creating(function ($user) {
+            $user->user_id = static::generateUserId();
+        });
+    }
+
+    /**
+     * Generate a unique user ID starting with "0001."
+     *
+     * @return string
+     */
+    protected static function generateUserId()
+    {
+        $lastUser = static::orderByDesc('id')->first();
+        if ($lastUser) {
+            $lastUserId = (int) ltrim($lastUser->user_id, '0');
+            $nextUserId = str_pad($lastUserId + 1, 4, '0', STR_PAD_LEFT);
+        } else {
+            $nextUserId = '0001';
+        }
+
+        return $nextUserId;
+    }
+
 }

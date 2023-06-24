@@ -5,34 +5,70 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Carbon;
 
 class UserController extends Controller
 {
+    // public function register(Request $request){
+    //     $request->validate([
+    //         'name'=>'required',
+    //         'email'=>'required|email',
+    //         'password'=>'required|confirmed',
+    //         'tc'=>'required',
+    //     ]);
+    //     if(User::where('email', $request->email)->first()){
+    //         return response([
+    //             'message' => 'Email already exists',
+    //             'status'=>'failed'
+    //         ], 200);
+    //     }
+
+    //     $user = User::create([
+    //         'name'=>$request->name,
+    //         'email'=>$request->email,
+    //         'password'=>Hash::make($request->password),
+    //         'tc'=>json_decode($request->tc),
+    //     ]);
+    //     $token = $user->createToken($request->email)->plainTextToken;
+    //     return response([
+    //         'token'=>$token,
+    //         'message' => 'Registration Success',
+    //         'status'=>'success'
+    //     ], 201);
+    // }
+
     public function register(Request $request){
         $request->validate([
-            'name'=>'required',
-            'email'=>'required|email',
-            'password'=>'required|confirmed',
-            'tc'=>'required',
-        ]);
+            'username' => 'required',
+            'fullname' => 'required',
+            'email' => 'required|email',
+            'password' => 'required|confirmed',
+            'company_id' => 'required',
+            'property_id' => 'required',
+            ]);
+
         if(User::where('email', $request->email)->first()){
             return response([
                 'message' => 'Email already exists',
-                'status'=>'failed'
+                'status' => 'failed'
             ], 200);
         }
 
         $user = User::create([
-            'name'=>$request->name,
-            'email'=>$request->email,
-            'password'=>Hash::make($request->password),
-            'tc'=>json_decode($request->tc),
+            'username' => $request->username,
+            'fullname' => $request->fullname,
+            'email' => $request->email,
+            'password' => Hash::make($request->password),
+            'company_id' => $request->company_id,
+            'property_id' => $request->property_id,
+            'date_registered' => now(), // Set the current date and time
         ]);
+
         $token = $user->createToken($request->email)->plainTextToken;
         return response([
-            'token'=>$token,
+            'token' => $token,
             'message' => 'Registration Success',
-            'status'=>'success'
+            'status' => 'success'
         ], 201);
     }
 
