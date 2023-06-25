@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreateFormGeneralsTable extends Migration
+class CreateWaterbillsTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,16 +13,16 @@ class CreateFormGeneralsTable extends Migration
      */
     public function up()
     {
-        Schema::create('form_generals', function (Blueprint $table) {
+        Schema::create('water_bills', function (Blueprint $table) {
             $table->id();
             $table->string('user_id');
             $table->string('username');
             $table->string('fullname');
-            $table->string('email');
+            $table->string('house_number');
             $table->string('category');
-            $table->string('problem_description');
-            $table->string('path');
-            $table->string('general_status')->default('pending');;
+            $table->date('date_payment');
+            $table->decimal('price', 8, 2);
+            $table->string('payment_status');
             $table->timestamps();
 
             $table->foreign('user_id')->references('user_id')->on('users')->onDelete('cascade');
@@ -36,6 +36,6 @@ class CreateFormGeneralsTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('form_generals');
+        Schema::dropIfExists('water_bills');
     }
 }

@@ -22,6 +22,7 @@ class CreateFormEnvironmentsTable extends Migration
             $table->string('category');
             $table->string('problem_description');
             $table->string('path');
+            $table->string('environment_status')->default('pending');;
             $table->timestamps();
 
             $table->foreign('user_id')->references('user_id')->on('users')->onDelete('cascade');

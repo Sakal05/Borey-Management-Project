@@ -22,6 +22,7 @@ class FormGeneralResource extends JsonResource
             'category' => $this->category,
             'problem_description' => $this->problem_description,
             'path' => $this->path,
+            'general_status' => $this->general_status,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];

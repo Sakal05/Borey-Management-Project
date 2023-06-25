@@ -43,7 +43,7 @@ class formEnvironmentController extends Controller
             'category' => 'required|string|max:255',
             'problem_description' => 'required',
             'image' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048', // Restrict the file types and size
-    
+            'environment_status' => 'required',
         ]);
 
         if($validator->fails()){
@@ -64,6 +64,7 @@ class formEnvironmentController extends Controller
             'category' => $request->category,
             'problem_description' => $request->problem_description,
             'path' => $imagePath, // Save the image path in the database
+            'environment_status' => $request->environment_status,
         ]);
         
         return response()->json(['Form created successfully.', new FormEnvironmentResource($formEnvironment)]);
@@ -106,6 +107,7 @@ class formEnvironmentController extends Controller
             'category' => 'required|string|max:255',
             'problem_description' => 'required',
             'new_image' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048', // Add validation for the new image
+            'environment_status' => 'required',
     ]);
 
         if($validator->fails()){
@@ -131,6 +133,8 @@ class formEnvironmentController extends Controller
             $newImagePath = $request->file('new_image')->store('images');
             $formEnvironment->path = str_replace('images/', '', $newImagePath);
         }
+
+        $formEnvironment->environment_status = $request->environment_status; // Update the environment_status value
 
         $formEnvironment->save();
 

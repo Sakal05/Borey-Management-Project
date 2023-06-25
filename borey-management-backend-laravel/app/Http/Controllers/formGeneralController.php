@@ -43,7 +43,7 @@ class formGeneralController extends Controller
             'category' => 'required|string|max:255',
             'problem_description' => 'required',
             'image' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048', // Restrict the file types and size
-    
+            'general_status' => 'required',
         ]);
 
         if($validator->fails()){
@@ -63,6 +63,7 @@ class formGeneralController extends Controller
             'category' => $request->category,
             'problem_description' => $request->problem_description,
             'path' => $imagePath, // Save the image path in the database
+            'general_status' => $request->general_status,
          ]);
         
         return response()->json(['Form created successfully.', new FormGeneralResource($formGeneral)]);
@@ -105,6 +106,7 @@ class formGeneralController extends Controller
             'category' => 'required|string|max:255',
             'problem_description' => 'required',
             'new_image' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048', // Add validation for the new image
+            'general_status' => 'required',
         ]);
 
         if($validator->fails()){
@@ -130,6 +132,8 @@ class formGeneralController extends Controller
             $newImagePath = $request->file('new_image')->store('images');
             $formGeneral->path = str_replace('images/', '', $newImagePath);
         }
+
+        $formGeneral->general_status = $request->general_status; // Update the environment_status value
 
         $formGeneral->save();
         

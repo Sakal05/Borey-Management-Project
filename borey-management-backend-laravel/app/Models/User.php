@@ -22,6 +22,8 @@ class User extends Authenticatable
         'fullname',
         'email',
         'password',
+        'company_id',
+        'property_id',
         'date_registered',
     ];
 
