@@ -1,5 +1,5 @@
 // ** React Imports
-import { useState, Fragment } from 'react'
+import { useState, Fragment, useEffect } from 'react'
 
 // ** Next Imports
 import Link from 'next/link'
@@ -20,6 +20,7 @@ import { styled, useTheme } from '@mui/material/styles'
 import MuiCard from '@mui/material/Card'
 import InputAdornment from '@mui/material/InputAdornment'
 import MuiFormControlLabel from '@mui/material/FormControlLabel'
+import { useRouter } from 'next/router'
 
 // ** Icons Imports
 import Google from 'mdi-material-ui/Google'
@@ -61,16 +62,38 @@ const FormControlLabel = styled(MuiFormControlLabel)(({ theme }) => ({
 const RegisterPage = () => {
   // ** States
   const [values, setValues] = useState({
-    password: '',
     showPassword: false
   })
 
+  const [confirmPassword, setConfirmPassword] = useState('')
+  const [tc, setTc] = useState(false)
+  const [userInfo, setUserInfo] = useState({
+    username: '',
+    fullname: '',
+    email: '',
+    password: '',
+    company_id: ''
+  })
+
+  /* 
+              'username' => 'required',
+            'fullname' => 'required',
+            'email' => 'required|email',
+            'password' => 'required|confirmed',
+            'company_id' => 'required',
+            'property_id' => 'required',
+            ]);
+        */
+
+  const [error, setError] = useState(false)
+  const [errorCheck, setErrorCheck] = useState(false)
   // ** Hook
   const theme = useTheme()
+  const router = useRouter()
 
-  const handleChange = prop => event => {
-    setValues({ ...values, [prop]: event.target.value })
-  }
+  // const handleChange = prop => event => {
+  //   setValues({ ...values, [prop]: event.target.value })
+  // }
 
   const handleClickShowPassword = () => {
     setValues({ ...values, showPassword: !values.showPassword })
@@ -79,6 +102,80 @@ const RegisterPage = () => {
   const handleMouseDownPassword = event => {
     event.preventDefault()
   }
+
+  const handleConfirmPassword = e => {
+    setConfirmPassword(e.target.value)
+  }
+
+  const verifyPassword = () => {
+    if (confirmPassword !== userInfo.password) {
+      setError(true)
+    } else {
+      setError(false)
+    }
+  }
+
+  const handleChange = e => {
+    const { name, value } = e.target
+    setUserInfo(prevData => ({
+      ...prevData,
+      [name]: value
+    }))
+  }
+
+  const handleCheck = e => {
+    if (e.target.checked) {
+      setTc(true)
+    } else {
+      setTc(false)
+    }
+  }
+
+  useEffect(() => {
+    if (!tc) {
+      setErrorCheck(true)
+    } else {
+      setErrorCheck(false)
+    }
+  }, [handleCheck])
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    const url = e.target.action
+    console.log(userInfo)
+    setUserInfo(prevData => ({
+      ...prevData,
+      password_confirmation: prevData.password,
+      date_registered: ""
+    }))
+
+    let headers = new Headers();
+
+    headers.append('Content-Type', 'application/json');
+    headers.append('Accept', 'application/json');
+    // headers.append('Origin','http://localhost:3000');
+
+    try {
+      
+      const response = await fetch(url, {
+        method: 'POST',
+        mode: 'cors',
+        headers: headers,
+        body: JSON.stringify(userInfo)
+      });
+      if (response.status == 'success') {
+        console.log(response)
+        // Redirect to a new page
+        // router.push('pages/c/login');
+      }
+    } catch(err) {
+      alert(err.message);
+    }
+
+    console.log(JSON.stringify(userInfo))
+  }
+
+  // console.log(JSON.stringify(userInfo))
 
   return (
     <Box className='content-center'>
@@ -163,16 +260,50 @@ const RegisterPage = () => {
             </Typography>
             <Typography variant='body2'>Make your borey management easy and fun!</Typography>
           </Box>
-          <form noValidate autoComplete='off' onSubmit={e => e.preventDefault()}>
-            <TextField autoFocus fullWidth id='username' label='Username' sx={{ marginBottom: 4 }} />
-            <TextField fullWidth type='email' label='Email' sx={{ marginBottom: 4 }} />
-            <FormControl fullWidth sx={{ marginBottom: 4 }} >
+          <form noValidate autoComplete='off' onSubmit={handleSubmit} action='http://127.0.0.1:8000/api/register' method='POST'>
+            <TextField
+              autoFocus
+              fullWidth
+              id='username'
+              name='username'
+              label='Username'
+              sx={{ marginBottom: 4 }}
+              onChange={handleChange}
+            />
+            <TextField
+              autoFocus
+              fullWidth
+              id='name'
+              name='fullname'
+              label='Full Name'
+              sx={{ marginBottom: 4 }}
+              onChange={handleChange}
+            />
+            <TextField
+              autoFocus
+              fullWidth
+              id='companyId'
+              name='company_id'
+              label='Company ID'
+              sx={{ marginBottom: 4 }}
+              onChange={handleChange}
+            />
+            <TextField
+              fullWidth
+              type='email'
+              name='email'
+              label='Email'
+              sx={{ marginBottom: 4 }}
+              onChange={handleChange}
+            />
+            <FormControl fullWidth sx={{ marginBottom: 4 }}>
               <InputLabel htmlFor='auth-register-password'>Password</InputLabel>
               <OutlinedInput
                 label='Password'
-                value={values.password}
+                value={userInfo.password}
                 id='auth-register-password'
-                onChange={handleChange('password')}
+                name='password'
+                onChange={handleChange}
                 type={values.showPassword ? 'text' : 'password'}
                 endAdornment={
                   <InputAdornment position='end'>
@@ -187,15 +318,14 @@ const RegisterPage = () => {
                   </InputAdornment>
                 }
               />
-              
             </FormControl>
-            <FormControl fullWidth sx={{ marginBottom: 4 }} >
+            <FormControl fullWidth sx={{ marginBottom: 4 }}>
               <InputLabel htmlFor='auth-register-password'>Confirm Password</InputLabel>
               <OutlinedInput
                 label='Confirm Password'
-                value={values.password}
-                id='auth-register-password'
-                onChange={handleChange('password')}
+                id='auth-register-confirm-password'
+                onChange={handleConfirmPassword}
+                onBlur={verifyPassword}
                 type={values.showPassword ? 'text' : 'password'}
                 endAdornment={
                   <InputAdornment position='end'>
@@ -209,11 +339,16 @@ const RegisterPage = () => {
                     </IconButton>
                   </InputAdornment>
                 }
+                sx={{ ...(error && { borderColor: 'red' }) }} // Apply red border color if there is an error
               />
-              
             </FormControl>
+            {error && (
+              <Typography variant='body2' color='error'>
+                Passwords do not match
+              </Typography>
+            )}
             <FormControlLabel
-              control={<Checkbox />}
+              control={<Checkbox onChange={handleCheck} />}
               label={
                 <Fragment>
                   <span>I agree to </span>
@@ -222,13 +357,19 @@ const RegisterPage = () => {
                   </Link>
                 </Fragment>
               }
+              sx={{ ...(errorCheck && { borderColor: 'red' }) }}
             />
-            <Link passHref href='/pages/c/register'>
+            {errorCheck && (
+              <Typography variant='body2' color='error'>
+                Please agree on term and conditions
+              </Typography>
+            )}
+            
               <Button fullWidth size='large' type='submit' variant='contained' sx={{ marginBottom: 7 }}>
                 Sign up
               </Button>
-            </Link>
-            
+           
+
             <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', justifyContent: 'center' }}>
               <Typography variant='body2' sx={{ marginRight: 2 }}>
                 Already have an account?

@@ -63,13 +63,48 @@ const LoginPage = () => {
     password: '',
     showPassword: false
   })
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+
+  const API_URL = 'http://localhost:8000/api/'
+
+  const login_token = null
 
   // ** Hook
   const theme = useTheme()
   const router = useRouter()
 
+  const get_user = async () => {
+    if (login_token) {
+      const headers = {
+        Authorization: `Bearer ${login_token}`
+      }
+
+      const result = await axios({
+        method: 'get',
+        url: 'auth-user',
+        baseURL: API_URL,
+        data: JSON.stringify({}),
+        headers: headers
+      })
+
+      const response = result.data
+
+      console.log('get_user', response)
+    } else {
+      console.log('Login Token is empty')
+    }
+  }
   const handleChange = prop => event => {
     setValues({ ...values, [prop]: event.target.value })
+  }
+
+  const handleChangeEmail = e => {
+    setUsername(e.target.value)
+  }
+
+  const handleChangePassword = e => {
+    setPassword(e.target.value)
   }
 
   const handleClickShowPassword = () => {
@@ -78,6 +113,35 @@ const LoginPage = () => {
 
   const handleMouseDownPassword = event => {
     event.preventDefault()
+  }
+
+  const handleSubmit = async e => {
+    e.preventDefault()
+
+    const headers = {
+      'Content-Type': `multipart/form-data`
+    }
+
+    let data = new FormData()
+    data.append('email', email)
+    data.append('password', password)
+
+    let result = await axios({
+      method: 'post',
+      url: 'login',
+      baseURL: API_URL,
+      data: data,
+      headers: headers
+    })
+
+    let response = result.data
+
+    if (response['success']) {
+      console.log('Login Successful')
+      login_token = response['token']
+    } else {
+      console.log('Failed to Login')
+    }
   }
 
   return (
@@ -163,15 +227,15 @@ const LoginPage = () => {
             </Typography>
             <Typography variant='body2'>Please sign-in to your admin account and start the using the tool</Typography>
           </Box>
-          <form noValidate autoComplete='off' onSubmit={e => e.preventDefault()}>
-            <TextField autoFocus fullWidth id='email' label='Email' sx={{ marginBottom: 4 }} />
+          <form noValidate autoComplete='off' onSubmit={handleSubmit}>
+            <TextField autoFocus fullWidth id='email' label='Email' sx={{ marginBottom: 4 }} onChange={handleChangeEmail}/>
             <FormControl fullWidth>
               <InputLabel htmlFor='auth-login-password'>Password</InputLabel>
               <OutlinedInput
                 label='Password'
                 value={values.password}
                 id='auth-login-password'
-                onChange={handleChange('password')}
+                onChange={handleChangePassword}
                 type={values.showPassword ? 'text' : 'password'}
                 endAdornment={
                   <InputAdornment position='end'>
@@ -214,7 +278,7 @@ const LoginPage = () => {
               }}
             >
               <Typography variant='body1'>
-              Log in as 
+                Log in as
                 <Link passHref href='/pages/u/login'>
                   <LinkStyled>&nbsp;USER&nbsp;</LinkStyled>
                 </Link>
