@@ -63,11 +63,6 @@ const navigation = () => {
       icon: CreditCardOutline,
       path: '/request-form'
     },
-    {
-      title: 'Suggestion Form',
-      icon: Table,
-      path: '/suggestion-form'
-    },
   ]
 }
 

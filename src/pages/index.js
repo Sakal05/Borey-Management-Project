@@ -1,6 +1,7 @@
 // ** MUI Imports
 import Grid from '@mui/material/Grid'
 
+
 // ** Styled Component Import
 import ApexChartWrapper from 'src/@core/styles/libs/react-apexcharts'
 import { useState, useEffect, useContext } from 'react'
@@ -18,6 +19,8 @@ import NewsFeedCard from './newsFeedCard'
 import newFeedData from 'src/dummyData/newFeedData'
 import { SettingsContext } from 'src/@core/context/settingsContext'
 import { useRouter } from 'next/router'
+import { toast } from 'react-toastify'
+import 'react-toastify/dist/ReactToastify.css'
 
 const NewsFeed = () => {
   const {
@@ -46,8 +49,8 @@ const NewsFeed = () => {
       token = t;
       console.log('token here cont',token)
       if (!verifyLogin(t)) {
-        alert('Please login');
-        router.push('pages/c/login')
+        toast.error("Please log in");
+        router.push('pages/u/login')
       };
 
     }, [])

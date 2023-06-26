@@ -61,8 +61,6 @@ const UserDropdown = () => {
 
   const handleLogOut = async () => {
     console.log('Token in log out page: ', token);
-    const csrfToken = getCsrfToken();
-    console.log(csrfToken);
 
     try {
       await axios({
@@ -89,7 +87,7 @@ const UserDropdown = () => {
 
       console.log('Log out successfully')
       clearAuthToken();
-      router.push('/pages/c/login')
+      router.push('/pages/u/login')
     } catch (err) {
       console.log(err)
     }
