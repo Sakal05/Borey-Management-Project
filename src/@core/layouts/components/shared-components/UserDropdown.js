@@ -1,5 +1,5 @@
 // ** React Imports
-import { useState, Fragment } from 'react'
+import { useState, Fragment, useContext } from 'react'
 
 // ** Next Import
 import { useRouter } from 'next/router'
@@ -22,6 +22,8 @@ import LogoutVariant from 'mdi-material-ui/LogoutVariant'
 import AccountOutline from 'mdi-material-ui/AccountOutline'
 import MessageOutline from 'mdi-material-ui/MessageOutline'
 import HelpCircleOutline from 'mdi-material-ui/HelpCircleOutline'
+import { SettingsContext } from 'src/@core/context/settingsContext'
+import axios from 'axios'
 
 // ** Styled Components
 const BadgeContentSpan = styled('span')(({ theme }) => ({
@@ -33,6 +35,12 @@ const BadgeContentSpan = styled('span')(({ theme }) => ({
 }))
 
 const UserDropdown = () => {
+  const API_URL = 'http://localhost:8000/api/'
+
+  const {
+    contextTokenValue: { token, clearAuthToken }
+  } = useContext(SettingsContext)
+
   // ** States
   const [anchorEl, setAnchorEl] = useState(null)
 
@@ -48,6 +56,41 @@ const UserDropdown = () => {
       router.push(url)
     }
     setAnchorEl(null)
+  }
+
+  const handleLogOut = async () => {
+    console.log('Token in log out page: ', token)
+
+    try {
+      await axios({
+        method: 'POST',
+        // baseURL: API_URL,
+        url: 'http://localhost:8000/api/logout',
+        // data: {
+        //     user_id: "0001", // Associate the user ID
+        //     username: "sadfadf",
+        //     fullname: "sasaasdf",
+        //     email: "samn@gmail.com",
+        //     category: "asdfasd",
+        //     problem_description: "asdfsdfsdf",
+        //     image: "fasdfsa.png", // Save the image path in the database
+        //     environment_status: "pending",
+        // },
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'X-CSRF-TOKEN': token,
+          'Content-Type': 'application/json'
+        }
+      }).then(res => {
+        console.log(res)
+      })
+
+      console.log('Log out successfully')
+      // clearAuthToken();
+      // router.push('/pages/c/login')
+    } catch (err) {
+      console.log(err)
+    }
   }
 
   const styles = {
@@ -144,7 +187,7 @@ const UserDropdown = () => {
           </Box>
         </MenuItem>
         <Divider />
-        <MenuItem sx={{ py: 2 }} onClick={() => handleDropdownClose('/pages/c/login')}>
+        <MenuItem sx={{ py: 2 }} onClick={handleLogOut}>
           <LogoutVariant sx={{ marginRight: 2, fontSize: '1.375rem', color: 'text.secondary' }} />
           Logout
         </MenuItem>

@@ -1,5 +1,5 @@
 // ** React Imports
-import { createContext, useState } from 'react'
+import { createContext, useState, useEffect } from 'react'
 
 // ** ThemeConfig Import
 import themeConfig from 'src/configs/themeConfig'
@@ -17,14 +17,44 @@ export const SettingsContext = createContext({
 })
 
 export const SettingsProvider = ({ children }) => {
-  // ** State
+  const [token, setToken] = useState(null)
+  // Function to set the token
+  const setAuthToken = newToken => {
+    console.log('Token in context: ', newToken)
+    localStorage.setItem('token', newToken)
+    setToken(newToken)
+  }
+
+  console.log('token inside context',token);
+
+  // Function to clear the token
+  const clearAuthToken = () => {
+    setToken(null)
+    localStorage.removeItem('token');
+  }
+
+  useEffect(() => {
+      const token = localStorage.getItem('token')
+      setToken(token)
+    }, [])
+
   const [settings, setSettings] = useState({ ...initialSettings })
 
   const saveSettings = updatedSettings => {
     setSettings(updatedSettings)
   }
 
-  return <SettingsContext.Provider value={{ settings, saveSettings }}>{children}</SettingsContext.Provider>
+  const contextTokenValue = {
+    token,
+    setAuthToken,
+    clearAuthToken
+  }
+
+  return (
+    <SettingsContext.Provider value={{ settings, saveSettings, contextTokenValue }}>
+      {children}
+    </SettingsContext.Provider>
+  )
 }
 
 export const SettingsConsumer = SettingsContext.Consumer

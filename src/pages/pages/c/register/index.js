@@ -1,5 +1,5 @@
 // ** React Imports
-import { useState, Fragment, useEffect } from 'react'
+import { useState, Fragment, useEffect, useContext } from 'react'
 
 // ** Next Imports
 import Link from 'next/link'
@@ -21,6 +21,7 @@ import MuiCard from '@mui/material/Card'
 import InputAdornment from '@mui/material/InputAdornment'
 import MuiFormControlLabel from '@mui/material/FormControlLabel'
 import { useRouter } from 'next/router'
+import axios from 'axios'
 
 // ** Icons Imports
 import Google from 'mdi-material-ui/Google'
@@ -29,6 +30,7 @@ import Twitter from 'mdi-material-ui/Twitter'
 import Facebook from 'mdi-material-ui/Facebook'
 import EyeOutline from 'mdi-material-ui/EyeOutline'
 import EyeOffOutline from 'mdi-material-ui/EyeOffOutline'
+import { SettingsContext } from 'src/@core/context/settingsContext'
 
 // ** Configs
 import themeConfig from 'src/configs/themeConfig'
@@ -60,11 +62,13 @@ const FormControlLabel = styled(MuiFormControlLabel)(({ theme }) => ({
 }))
 
 const RegisterPage = () => {
+  const { contextTokenValue: { setAuthToken } } = useContext(SettingsContext);
+
   // ** States
   const [values, setValues] = useState({
     showPassword: false
   })
-
+  const [tokenR, setToken] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('')
   const [tc, setTc] = useState(false)
   const [userInfo, setUserInfo] = useState({
@@ -74,16 +78,6 @@ const RegisterPage = () => {
     password: '',
     company_id: ''
   })
-
-  /* 
-              'username' => 'required',
-            'fullname' => 'required',
-            'email' => 'required|email',
-            'password' => 'required|confirmed',
-            'company_id' => 'required',
-            'property_id' => 'required',
-            ]);
-        */
 
   const [error, setError] = useState(false)
   const [errorCheck, setErrorCheck] = useState(false)
@@ -121,6 +115,12 @@ const RegisterPage = () => {
       ...prevData,
       [name]: value
     }))
+
+    setUserInfo(prevData => ({
+      ...prevData,
+      property_id: '0001',
+      password_confirmation: prevData.password,
+    }))
   }
 
   const handleCheck = e => {
@@ -139,37 +139,43 @@ const RegisterPage = () => {
     }
   }, [handleCheck])
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleSubmit = async e => {
+    e.preventDefault()
     const url = e.target.action
     console.log(userInfo)
-    setUserInfo(prevData => ({
-      ...prevData,
-      password_confirmation: prevData.password,
-      date_registered: ""
-    }))
+    
 
-    let headers = new Headers();
+    // let headers = new Headers()
 
-    headers.append('Content-Type', 'application/json');
-    headers.append('Accept', 'application/json');
+    // headers.append('Accept', 'application/json');
+    // headers.append('Content-Type', 'multipart/form-data')
+    // headers.append('Accept', 'application/json');
     // headers.append('Origin','http://localhost:3000');
 
     try {
+
+      // const formData = new FormData();
+      // formData.append('username', userInfo.username);
+      // formData.append('fullname', userInfo.fullname);
+      // formData.append('email', userInfo.email);
+      // formData.append('password', userInfo.password);
+      // formData.append('password_confirmation', userInfo.password);
+      // formData.append('company_id', userInfo.company_id);
+      // formData.append('property_id', userInfo.property_id);
+
+      // console.log(formData);
       
-      const response = await fetch(url, {
-        method: 'POST',
-        mode: 'cors',
-        headers: headers,
-        body: JSON.stringify(userInfo)
-      });
-      if (response.status == 'success') {
-        console.log(response)
+      const response = await axios.post('http://127.0.0.1:8000/api/register', userInfo);
+      // console.log(response);
+      if (response.data.status == 'success') {
+        // console.log(response.data.token);
+        // const t = response.data.token;
+        // setAuthToken(t);
         // Redirect to a new page
-        // router.push('pages/c/login');
+        router.push('login');
       }
-    } catch(err) {
-      alert(err.message);
+    } catch (err) {
+      alert(err.message)
     }
 
     console.log(JSON.stringify(userInfo))
@@ -260,7 +266,7 @@ const RegisterPage = () => {
             </Typography>
             <Typography variant='body2'>Make your borey management easy and fun!</Typography>
           </Box>
-          <form noValidate autoComplete='off' onSubmit={handleSubmit} action='http://127.0.0.1:8000/api/register' method='POST'>
+          <form noValidate autoComplete='off' onSubmit={handleSubmit} >
             <TextField
               autoFocus
               fullWidth
@@ -364,11 +370,10 @@ const RegisterPage = () => {
                 Please agree on term and conditions
               </Typography>
             )}
-            
-              <Button fullWidth size='large' type='submit' variant='contained' sx={{ marginBottom: 7 }}>
-                Sign up
-              </Button>
-           
+
+            <Button fullWidth size='large' type='submit' variant='contained' sx={{ marginBottom: 7 }}>
+              Sign up
+            </Button>
 
             <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', justifyContent: 'center' }}>
               <Typography variant='body2' sx={{ marginRight: 2 }}>

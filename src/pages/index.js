@@ -3,7 +3,7 @@ import Grid from '@mui/material/Grid'
 
 // ** Styled Component Import
 import ApexChartWrapper from 'src/@core/styles/libs/react-apexcharts'
-import { useState } from 'react'
+import { useState, useEffect, useContext } from 'react'
 
 // ** MUI Imports for tab panel
 import Tab from '@mui/material/Tab'
@@ -16,15 +16,42 @@ import Typography from '@mui/material/Typography'
 import CardContent from '@mui/material/CardContent'
 import NewsFeedCard from './newsFeedCard'
 import newFeedData from 'src/dummyData/newFeedData'
+import { SettingsContext } from 'src/@core/context/settingsContext'
+import { useRouter } from 'next/router'
 
 const NewsFeed = () => {
+  const {
+    contextTokenValue: { token }
+  } = useContext(SettingsContext)
+
+  const router = useRouter()
+
   // ** State
-  const [value, setValue] = useState('1')
+  const [value, setValue] = useState('1');
 
   const handleChange = (event, newValue) => {
     setValue(newValue)
   }
+
+  const verifyLogin = () => {
+    if (token === null) {
+      return false
+    } else {
+      return true
+    }
+  }
   
+  useEffect(() => {
+      const t = localStorage.getItem('token');
+      token = t;
+      console.log(token)
+      if (!verifyLogin()) {
+        alert('Please login');
+        router.push('pages/c/login')
+      };
+
+    }, [])
+
   return (
     <ApexChartWrapper sx={{ alignContent: 'center', alignItems: 'center' }}>
       {/* <Grid container spacing={6} m={5} sx={{ display: 'flex', justifyContent:'center', alignItems: 'center'}}>
@@ -32,29 +59,29 @@ const NewsFeed = () => {
           NewsFeed
         </Typography>
       </Grid> */}
-      <Grid container spacing={6} sx={{ m: 'auto', display: 'flex', justifyContent:'center', alignItems: 'center' }}>
+      <Grid container spacing={6} sx={{ m: 'auto', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
         <Card>
           <TabContext value={value}>
             <TabList centered onChange={handleChange} aria-label='card navigation example'>
-              <Tab value='1' label='For You'  sx={{ fontWeight: '900' }}/>
-              <Tab value='2' label='Promotion'  sx={{ fontWeight: '900' }}/>
+              <Tab value='1' label='For You' sx={{ fontWeight: '900' }} />
+              <Tab value='2' label='Promotion' sx={{ fontWeight: '900' }} />
             </TabList>
             <CardContent sx={{ textAlign: 'center' }}>
               <TabPanel value='1' sx={{ p: 0 }}>
-                  {newFeedData
+                {newFeedData
                   .filter(data => data.promotion === 'false')
                   .map(data => (
                     <Grid spacing={5} m={5} key={data.newFeedId}>
-                      <NewsFeedCard data={data} ></NewsFeedCard>
+                      <NewsFeedCard data={data}></NewsFeedCard>
                     </Grid>
                   ))}
               </TabPanel>
               <TabPanel value='2' sx={{ p: 0 }}>
-                  {newFeedData
+                {newFeedData
                   .filter(data => data.promotion === 'true')
                   .map(data => (
                     <Grid spacing={5} m={5} key={data.newFeedId}>
-                      <NewsFeedCard data={data} ></NewsFeedCard>
+                      <NewsFeedCard data={data}></NewsFeedCard>
                     </Grid>
                   ))}
               </TabPanel>

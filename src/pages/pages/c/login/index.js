@@ -1,5 +1,5 @@
 // ** React Imports
-import { useState } from 'react'
+import { useState, useContext } from 'react'
 
 // ** Next Imports
 import Link from 'next/link'
@@ -21,6 +21,7 @@ import { styled, useTheme } from '@mui/material/styles'
 import MuiCard from '@mui/material/Card'
 import InputAdornment from '@mui/material/InputAdornment'
 import MuiFormControlLabel from '@mui/material/FormControlLabel'
+import axios from 'axios'
 
 // ** Icons Imports
 import Google from 'mdi-material-ui/Google'
@@ -38,6 +39,9 @@ import BlankLayout from 'src/@core/layouts/BlankLayout'
 
 // ** Demo Imports
 import FooterIllustrationsV1 from 'src/views/pages/auth/FooterIllustration'
+
+// context
+import { SettingsContext } from 'src/@core/context/settingsContext'
 
 // ** Styled Components
 const Card = styled(MuiCard)(({ theme }) => ({
@@ -58,6 +62,10 @@ const FormControlLabel = styled(MuiFormControlLabel)(({ theme }) => ({
 }))
 
 const LoginPage = () => {
+  const {
+    contextTokenValue: { setAuthToken }
+  } = useContext(SettingsContext)
+
   // ** State
   const [values, setValues] = useState({
     password: '',
@@ -68,39 +76,18 @@ const LoginPage = () => {
 
   const API_URL = 'http://localhost:8000/api/'
 
-  const login_token = null
+  // const [token, setToken] = useState(null)
 
   // ** Hook
   const theme = useTheme()
   const router = useRouter()
 
-  const get_user = async () => {
-    if (login_token) {
-      const headers = {
-        Authorization: `Bearer ${login_token}`
-      }
-
-      const result = await axios({
-        method: 'get',
-        url: 'auth-user',
-        baseURL: API_URL,
-        data: JSON.stringify({}),
-        headers: headers
-      })
-
-      const response = result.data
-
-      console.log('get_user', response)
-    } else {
-      console.log('Login Token is empty')
-    }
-  }
   const handleChange = prop => event => {
     setValues({ ...values, [prop]: event.target.value })
   }
 
   const handleChangeEmail = e => {
-    setUsername(e.target.value)
+    setEmail(e.target.value)
   }
 
   const handleChangePassword = e => {
@@ -118,30 +105,39 @@ const LoginPage = () => {
   const handleSubmit = async e => {
     e.preventDefault()
 
-    const headers = {
-      'Content-Type': `multipart/form-data`
-    }
-
     let data = new FormData()
     data.append('email', email)
     data.append('password', password)
+    console.log('data: ', data)
 
-    let result = await axios({
-      method: 'post',
-      url: 'login',
+    const result = await axios({
+      method: 'POST',
       baseURL: API_URL,
+      url: 'login',
       data: data,
-      headers: headers
-    })
+      // headers: {
+      //   'Content-Type': 'multipart/form-data'
+      // }
+    });
 
-    let response = result.data
+    try {
+      const response = result.data
+      console.log(response)
 
-    if (response['success']) {
-      console.log('Login Successful')
-      login_token = response['token']
-    } else {
-      console.log('Failed to Login')
+      if (response.message === 'Login Success') {
+        setAuthToken(response.token);
+        console.log('Login Successful');
+        router.push('/');
+      } else if (response.message === 'Wrong Email or Password') {
+        alert(response.message);
+        console.log("Incorrect password or email, please try again");
+        console.log('Failed to Login');
+      }
+    } catch (err) {
+      console.log(err)
     }
+  
+    
   }
 
   return (
@@ -228,13 +224,20 @@ const LoginPage = () => {
             <Typography variant='body2'>Please sign-in to your admin account and start the using the tool</Typography>
           </Box>
           <form noValidate autoComplete='off' onSubmit={handleSubmit}>
-            <TextField autoFocus fullWidth id='email' label='Email' sx={{ marginBottom: 4 }} onChange={handleChangeEmail}/>
+            <TextField
+              autoFocus
+              fullWidth
+              id='email'
+              label='Email'
+              sx={{ marginBottom: 4 }}
+              onChange={handleChangeEmail}
+            />
             <FormControl fullWidth>
               <InputLabel htmlFor='auth-login-password'>Password</InputLabel>
               <OutlinedInput
                 label='Password'
-                value={values.password}
                 id='auth-login-password'
+                value={password}
                 onChange={handleChangePassword}
                 type={values.showPassword ? 'text' : 'password'}
                 endAdornment={
@@ -259,13 +262,7 @@ const LoginPage = () => {
                 <LinkStyled onClick={e => e.preventDefault()}>Forgot Password?</LinkStyled>
               </Link>
             </Box>
-            <Button
-              fullWidth
-              size='large'
-              variant='contained'
-              sx={{ marginBottom: 7 }}
-              onClick={() => router.push('/')}
-            >
+            <Button fullWidth size='large' variant='contained' sx={{ marginBottom: 7 }} type='submit'>
               Login
             </Button>
             <Box
