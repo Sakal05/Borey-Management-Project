@@ -28,7 +28,7 @@ class formGeneralController extends Controller
         // $data = formGeneral::latest()->get();
         // return response()->json([FormGeneralResource::collection($data), 'Programs fetched.']);
     }
-
+    
     /**
      * Store a newly created resource in storage.
      *
@@ -38,8 +38,6 @@ class formGeneralController extends Controller
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(),[
-            'fullname' => 'required|string|max:255',
-            'email' => 'required|string|max:255',
             'category' => 'required|string|max:255',
             'problem_description' => 'required',
             'image' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048', // Restrict the file types and size
@@ -52,14 +50,16 @@ class formGeneralController extends Controller
 
         $user = auth()->user();
         $username = $user->username;
+        $fullname = $user->fullname;
+        $email = $user->email;
 
         $imagePath = $request->file('image')->store('images'); // Save the image to the 'images' directory
 
         $formGeneral = formGeneral::create([
             'user_id' => $user->user_id, // Associate the user ID
             'username' => $username,
-            'fullname' => $request->fullname,
-            'email' => $request->email,
+            'fullname' => $fullname,
+            'email' => $email,
             'category' => $request->category,
             'problem_description' => $request->problem_description,
             'path' => $imagePath, // Save the image path in the database
@@ -67,7 +67,12 @@ class formGeneralController extends Controller
          ]);
         
         return response()->json(['Form created successfully.', new FormGeneralResource($formGeneral)]);
+
+        return response()->json(['error' => 'Image not found.'], 400);
+
     }
+
+    
 
     /**
      * Display the specified resource.
@@ -90,6 +95,7 @@ class formGeneralController extends Controller
 
         return response()->json([new FormGeneralResource($formGeneral)]);
     }
+    
 
     /**
      * Update the specified resource in storage.
@@ -101,8 +107,6 @@ class formGeneralController extends Controller
     public function update(Request $request, formGeneral $formGeneral)
     {
         $validator = Validator::make($request->all(),[
-            'fullname' => 'required|string|max:255',
-            'email' => 'required|string|max:255',
             'category' => 'required|string|max:255',
             'problem_description' => 'required',
             'new_image' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048', // Add validation for the new image
@@ -117,8 +121,8 @@ class formGeneralController extends Controller
 
         $formGeneral->user_id;
         $formGeneral->username;
-        $formGeneral->fullname = $request->fullname;
-        $formGeneral->email = $request->email;
+        $formGeneral->fullname;
+        $formGeneral->email;
         $formGeneral->category = $request->category;
         $formGeneral->problem_description = $request->problem_description;
 

@@ -38,8 +38,6 @@ class formEnvironmentController extends Controller
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(),[
-            'fullname' => 'required|string|max:255',
-            'email' => 'required|string|max:255',
             'category' => 'required|string|max:255',
             'problem_description' => 'required',
             'image' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048', // Restrict the file types and size
@@ -52,6 +50,8 @@ class formEnvironmentController extends Controller
         
         $user = auth()->user();
         $username = $user->username;
+        $fullname = $user->fullname;
+        $email = $user->email;
 
         $imagePath = $request->file('image')->store('images'); // Save the image to the 'images' directory
 
@@ -59,8 +59,8 @@ class formEnvironmentController extends Controller
         $formEnvironment = formEnvironment::create([
             'user_id' => $user->user_id, // Associate the user ID
             'username' => $username,
-            'fullname' => $request->fullname,
-            'email' => $request->email,
+            'fullname' => $fullname,
+            'email' => $email,
             'category' => $request->category,
             'problem_description' => $request->problem_description,
             'path' => $imagePath, // Save the image path in the database
@@ -68,6 +68,8 @@ class formEnvironmentController extends Controller
         ]);
         
         return response()->json(['Form created successfully.', new FormEnvironmentResource($formEnvironment)]);
+
+        return response()->json(['error' => 'Image not found.'], 400);
     }
 
     /**
@@ -102,8 +104,6 @@ class formEnvironmentController extends Controller
     public function update(Request $request, formEnvironment $formEnvironment)
     {
         $validator = Validator::make($request->all(),[
-            'fullname' => 'required|string|max:255',
-            'email' => 'required|string|max:255',
             'category' => 'required|string|max:255',
             'problem_description' => 'required',
             'new_image' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048', // Add validation for the new image
@@ -118,8 +118,8 @@ class formEnvironmentController extends Controller
 
         $formEnvironment->user_id;
         $formEnvironment->username;
-        $formEnvironment->fullname = $request->fullname;
-        $formEnvironment->email = $request->email;
+        $formEnvironment->fullname;
+        $formEnvironment->email;
         $formEnvironment->category = $request->category;
         $formEnvironment->problem_description = $request->problem_description;
 
