@@ -14,7 +14,7 @@ return [
     */
 
     'defaults' => [
-        'guard' => 'web',
+        'guard' => 'api',
         'passwords' => 'users',
     ],
 
@@ -35,22 +35,22 @@ return [
     |
     */
 
-    // 'guards' => [
-    //     'web' => [
-    //         'driver' => 'session',
-    //         'provider' => 'users',
-    //     ],
-    // ],
-
     'guards' => [
         'web' => [
             'driver' => 'session',
             'provider' => 'users',
         ],
 
+        'api' => [
+            'driver' => 'sanctum',
+            'provider' => 'users',
+            'hash' => false,
+        ],
+
         'companies' => [
-            'driver' => 'session',
+            'driver' => 'sanctum',
             'provider' => 'companies',
+            'hash' => false,
         ],
     ],
     
@@ -89,6 +89,7 @@ return [
             'driver' => 'eloquent',
             'model' => App\Models\User::class,
         ],
+
         'companies' => [
             'driver' => 'eloquent',
             'model' => App\Models\Company::class,

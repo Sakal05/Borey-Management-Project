@@ -1,8 +1,5 @@
 <?php
 
-header('Access-Control-Allow-Origin: *');
-header('Access-Control-Allow-Headers: Authorization');
-
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\UserController;
@@ -30,6 +27,8 @@ Route::post('/register', [UserController::class, 'register']);
 Route::post('/login', [UserController::class, 'login']);
 Route::post('/send-reset-password-email', [PasswordResetController::class, 'send_reset_password_email']);
 Route::post('/reset-password/{token}', [PasswordResetController::class, 'reset']);
+Route::post('logout', [UserController::class, 'logout'])->middleware('auth:sanctum');
+
 
 // Companies Routes
 Route::post('/company/register', [CompaniesController::class, 'register']);
@@ -39,10 +38,10 @@ Route::post('/company/reset-password/{token}', [CompaniesPasswordResetController
 
 
 // Protected User, Companies Routes
-Route::middleware(['auth:sanctum'])->group(function(){
+Route::middleware(['auth:sanctum', 'csrf-cookie'])->group(function(){
 
     // User Routes
-    Route::post('/logout', [UserController::class, 'logout']);
+    // Route::post('/logout', [UserController::class, 'logout']);
     Route::get('/loggeduser', [UserController::class, 'logged_user']);
     Route::post('/changepassword', [UserController::class, 'change_password']);
 

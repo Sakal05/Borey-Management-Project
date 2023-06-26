@@ -9,33 +9,6 @@ use Illuminate\Support\Carbon;
 
 class UserController extends Controller
 {
-    // public function register(Request $request){
-    //     $request->validate([
-    //         'name'=>'required',
-    //         'email'=>'required|email',
-    //         'password'=>'required|confirmed',
-    //         'tc'=>'required',
-    //     ]);
-    //     if(User::where('email', $request->email)->first()){
-    //         return response([
-    //             'message' => 'Email already exists',
-    //             'status'=>'failed'
-    //         ], 200);
-    //     }
-
-    //     $user = User::create([
-    //         'name'=>$request->name,
-    //         'email'=>$request->email,
-    //         'password'=>Hash::make($request->password),
-    //         'tc'=>json_decode($request->tc),
-    //     ]);
-    //     $token = $user->createToken($request->email)->plainTextToken;
-    //     return response([
-    //         'token'=>$token,
-    //         'message' => 'Registration Success',
-    //         'status'=>'success'
-    //     ], 201);
-    // }
 
     public function register(Request $request){
         $request->validate([
@@ -93,11 +66,19 @@ class UserController extends Controller
     }
 
     public function logout(){
-        auth()->user()->tokens()->delete();
+        if (auth()->user()) {
+            auth()->user()->tokens()->delete();
+
+            return response([
+                'message' => 'Logout Success',
+                'status' => 'success'
+            ], 200);
+        }
+
         return response([
-            'message' => 'Logout Success',
-            'status'=>'success'
-        ], 200);
+            'message' => 'User not authenticated',
+            'status' => 'failed'
+        ], 401);
     }
     
     public function logged_user(){
