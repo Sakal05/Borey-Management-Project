@@ -33,7 +33,7 @@ const NewsFeed = () => {
     setValue(newValue)
   }
 
-  const verifyLogin = () => {
+  const verifyLogin = (token) => {
     if (token === null) {
       return false
     } else {
@@ -44,8 +44,8 @@ const NewsFeed = () => {
   useEffect(() => {
       const t = localStorage.getItem('token');
       token = t;
-      console.log(token)
-      if (!verifyLogin()) {
+      console.log('token here cont',token)
+      if (!verifyLogin(t)) {
         alert('Please login');
         router.push('pages/c/login')
       };

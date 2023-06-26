@@ -23,6 +23,7 @@ import AccountOutline from 'mdi-material-ui/AccountOutline'
 import MessageOutline from 'mdi-material-ui/MessageOutline'
 import HelpCircleOutline from 'mdi-material-ui/HelpCircleOutline'
 import { SettingsContext } from 'src/@core/context/settingsContext'
+import cookie from 'cookie';
 import axios from 'axios'
 
 // ** Styled Components
@@ -39,7 +40,7 @@ const UserDropdown = () => {
 
   const {
     contextTokenValue: { token, clearAuthToken }
-  } = useContext(SettingsContext)
+  } = useContext(SettingsContext);
 
   // ** States
   const [anchorEl, setAnchorEl] = useState(null)
@@ -59,7 +60,9 @@ const UserDropdown = () => {
   }
 
   const handleLogOut = async () => {
-    console.log('Token in log out page: ', token)
+    console.log('Token in log out page: ', token);
+    const csrfToken = getCsrfToken();
+    console.log(csrfToken);
 
     try {
       await axios({
@@ -78,7 +81,6 @@ const UserDropdown = () => {
         // },
         headers: {
           Authorization: `Bearer ${token}`,
-          'X-CSRF-TOKEN': token,
           'Content-Type': 'application/json'
         }
       }).then(res => {
@@ -86,8 +88,8 @@ const UserDropdown = () => {
       })
 
       console.log('Log out successfully')
-      // clearAuthToken();
-      // router.push('/pages/c/login')
+      clearAuthToken();
+      router.push('/pages/c/login')
     } catch (err) {
       console.log(err)
     }

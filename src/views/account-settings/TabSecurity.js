@@ -1,5 +1,5 @@
 // ** React Imports
-import { useState } from 'react'
+import { useState, useContext } from 'react'
 
 // ** MUI Imports
 import Box from '@mui/material/Box'
@@ -14,14 +14,21 @@ import CardContent from '@mui/material/CardContent'
 import FormControl from '@mui/material/FormControl'
 import OutlinedInput from '@mui/material/OutlinedInput'
 import InputAdornment from '@mui/material/InputAdornment'
+import { toast } from 'react-toastify'
+import 'react-toastify/dist/ReactToastify.css'
 
 // ** Icons Imports
 import EyeOutline from 'mdi-material-ui/EyeOutline'
 import KeyOutline from 'mdi-material-ui/KeyOutline'
 import EyeOffOutline from 'mdi-material-ui/EyeOffOutline'
 import LockOpenOutline from 'mdi-material-ui/LockOpenOutline'
+import { SettingsContext } from '../../../src/@core/context/settingsContext'
+import axios from 'axios'
 
 const TabSecurity = () => {
+  const {
+    contextTokenValue: { token }
+  } = useContext(SettingsContext)
   // ** States
   const [values, setValues] = useState({
     newPassword: '',
@@ -71,8 +78,46 @@ const TabSecurity = () => {
     event.preventDefault()
   }
 
+  const onSubmit = async e => {
+    e.preventDefault()
+    console.log({
+      current_password: values.currentPassword,
+      password: values.newPassword
+    })
+
+    if (values.newPassword !== values.confirmNewPassword) {
+      toast.error('Passwords do not match')
+    } else {
+      try {
+        const response = await axios({
+          method: 'POST',
+          url: 'http://localhost:8000/api/changepassword',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`
+          },
+          data: {
+            current_password: values.currentPassword,
+            password: values.newPassword,
+            password_confirmation: values.newPassword
+          }
+        })
+        console.log(response)
+        if (response.status === 200) {
+          toast.success('Password changed successfully')
+        } else if (response.status === 401) {
+          toast.error('Current Password is incorrect')
+        }
+      } catch (error) {
+        // Handle other types of errors
+        toast.error('Current Password is incorrect')
+        console.error(error)
+      }
+    }
+  }
+
   return (
-    <form>
+    <form onSubmit={onSubmit}>
       <CardContent sx={{ paddingBottom: 0 }}>
         <Grid container spacing={5}>
           <Grid item xs={12} sm={6}>
@@ -163,44 +208,8 @@ const TabSecurity = () => {
             <img width={183} alt='avatar' height={256} src='/images/pages/pose-m-1.png' />
           </Grid>
         </Grid>
-      </CardContent>
-
-      <Divider sx={{ margin: 0 }} />
-
-      <CardContent>
-        <Box sx={{ mt: 1.75, display: 'flex', alignItems: 'center' }}>
-          <KeyOutline sx={{ marginRight: 3 }} />
-          <Typography variant='h6'>Two-factor authentication</Typography>
-        </Box>
-
-        <Box sx={{ mt: 5.75, display: 'flex', justifyContent: 'center' }}>
-          <Box
-            sx={{
-              maxWidth: 368,
-              display: 'flex',
-              textAlign: 'center',
-              alignItems: 'center',
-              flexDirection: 'column'
-            }}
-          >
-            <Avatar
-              variant='rounded'
-              sx={{ width: 48, height: 48, color: 'common.white', backgroundColor: 'primary.main' }}
-            >
-              <LockOpenOutline sx={{ fontSize: '1.75rem' }} />
-            </Avatar>
-            <Typography sx={{ fontWeight: 600, marginTop: 3.5, marginBottom: 3.5 }}>
-              Two factor authentication is not enabled yet.
-            </Typography>
-            <Typography variant='body2'>
-              Two-factor authentication adds an additional layer of security to your account by requiring more than just
-              a password to log in. Learn more.
-            </Typography>
-          </Box>
-        </Box>
-
         <Box sx={{ mt: 11 }}>
-          <Button variant='contained' sx={{ marginRight: 3.5 }}>
+          <Button variant='contained' sx={{ marginRight: 3.5 }} type='submit'>
             Save Changes
           </Button>
           <Button
@@ -213,6 +222,8 @@ const TabSecurity = () => {
           </Button>
         </Box>
       </CardContent>
+
+      <Divider sx={{ margin: 0 }} />
     </form>
   )
 }

@@ -1,5 +1,7 @@
 // ** React Imports
 import { createContext, useState, useEffect } from 'react'
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 // ** ThemeConfig Import
 import themeConfig from 'src/configs/themeConfig'
@@ -52,6 +54,7 @@ export const SettingsProvider = ({ children }) => {
 
   return (
     <SettingsContext.Provider value={{ settings, saveSettings, contextTokenValue }}>
+      <ToastContainer />
       {children}
     </SettingsContext.Provider>
   )

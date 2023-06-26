@@ -1,5 +1,5 @@
 // ** React Imports
-import { useState } from 'react'
+import { useState, useContext } from 'react'
 
 // ** MUI Imports
 import Box from '@mui/material/Box'
@@ -17,6 +17,8 @@ import IconButton from '@mui/material/IconButton'
 import CardContent from '@mui/material/CardContent'
 import FormControl from '@mui/material/FormControl'
 import Button from '@mui/material/Button'
+import { SettingsContext } from '../../../src/@core/context/settingsContext'
+import axios from 'axios'
 
 // ** Icons Imports
 import Close from 'mdi-material-ui/Close'
@@ -50,28 +52,25 @@ const EnvironmentalFormField = () => {
   const [openAlert, setOpenAlert] = useState(true)
   const [imgSrc, setImgSrc] = useState('/images/avatars/1.png')
   const [forMeStatus, setForMeStatus] = useState(true)
+  const {
+    contextTokenValue: { token }
+  } = useContext(SettingsContext)
   const [formData, setFormData] = useState({
-    fullName: '',
-    userName: '',
+    fullname: '',
     email: '',
     category: '',
-    problem: '',
-    file: {}
+    problem_description: '',
+    image: null,
+    general_status: 'pending'
   })
 
-  const onFileChange = file => {
-    const reader = new FileReader()
-    const { files } = file.target
-    if (files && files.length !== 0) {
-      reader.onload = () => setImgSrc(reader.result)
-      reader.readAsDataURL(files[0])
-    }
-  }
-
-  const handleUserStatus = e => {
-    const value = e.target.value
-    console.log(value)
-    setForMeStatus(value === 'for_me' ? true : false)
+  const onChangeFile = e => {
+    const file = e.target.files[0]
+    setImgSrc(URL.createObjectURL(file))
+    setFormData(prevState => ({
+      ...prevState,
+      image: file
+    }))
   }
 
   const handleInput = e => {
@@ -82,70 +81,55 @@ const EnvironmentalFormField = () => {
       ...prevState,
       [fieldName]: fieldValue
     }))
-  }
-
-  const fetchDefaultUser = () => {
-    fetch('/api/users/default')
-      .then(res => res.json())
-      .then(data => {
-        setFormData(prevState => ({
-          ...prevState,
-          fullName: data.fullName,
-          userName: data.userName,
-          email: data.email
-        }))
-      })
-  }
-
-  const submitForm = e => {
-    // We don't want the page to refresh
-    //e.preventDefault();
 
     if (forMeStatus) {
+      console.log('isForMe')
+
       setFormData(prevState => ({
         ...prevState,
-        fullName: 'Sakal Samnang',
-        userName: 'Sakal05',
+        fullname: 'Sakal Samnang',
         email: 'sakal05@gmail.com'
       }))
     }
+  }
 
-    const formURL = e.target.action
-    const data = new FormData()
-    // Turn our formData state into data we can use with a form submission
-    Object.entries(formData).forEach(([key, value]) => {
-      data.append(key, value)
-    })
+  const handleUserStatus = e => {
+    setForMeStatus(e.target.value === 'for_me' ? true : false)
+    console.log('forMeStatus', e.target.value)
+    console.log('forMeStatus', forMeStatus)
+  }
 
-    console.log('Form Data:', formData)
+  const submitForm = async e => {
+    // We don't want the page to refresh
+    e.preventDefault()
 
-    // setFormData({
-    //       fullName: '',
-    //       userName: '',
-    //       email: '',
-    //       category: '',
-    //       problem: ''
-    //     })
+    console.log(formData)
 
     // ===== POST the data to the URL of the form
-    // fetch(formURL, {
-    //   method: 'POST',
-    //   body: data,
-    //   headers: {
-    //     accept: 'application/json'
-    //   }
-    // }).then((response) => response.json())
-    // .then((data) => {
-    // setFormData({
-    //       fullName: '',
-    //       userName: '',
-    //       email: '',
-    //       category: '',
-    //       problem: ''
-    //     })
-    //   setFormSuccess(true)
-    //   setFormSuccessMessage(data.submission_text)
-    // })
+    const res = await axios({
+      url: 'http://localhost:8000/api/form_generals',
+      method: 'POST',
+      data: formData,
+      headers: {
+        'Content-Type': 'multipart/form-data',
+        Authorization: `Bearer ${token}`
+      }
+    })
+
+    try {
+      console.log(res)
+
+      setFormData({
+        fullname: '',
+        email: '',
+        general_status: 'pending',
+        category: '',
+        problem_description: '',
+        image: ''
+      })
+    } catch (err) {
+      alert('Error', err.message)
+    }
   }
 
   return (
@@ -201,7 +185,7 @@ const EnvironmentalFormField = () => {
           <Grid item xs={12} sm={12}>
             <FormControl fullWidth>
               <InputLabel>Category</InputLabel>
-              <Select label='category' name='category'  onChange={handleInput}>
+              <Select label='category' name='category' onChange={handleInput}>
                 <MenuItem value='Energy Efficiency'>Energy Efficiency</MenuItem>
                 <MenuItem value='Waste Management'>Waste Management</MenuItem>
                 <MenuItem value='house_hold'>House Hold Repair</MenuItem>
@@ -213,7 +197,7 @@ const EnvironmentalFormField = () => {
             <TextField
               fullWidth
               label='Problem'
-              name='problem'
+              name='problem_description'
               placeholder='Descripte your problem here'
               onChange={handleInput}
             />
@@ -227,7 +211,7 @@ const EnvironmentalFormField = () => {
                   <input
                     hidden
                     type='file'
-                    onChange={onFileChange}
+                    onChange={onChangeFile}
                     accept='image/png, image/jpeg'
                     id='account-settings-upload-image'
                   />
