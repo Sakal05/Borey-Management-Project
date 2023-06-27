@@ -36,6 +36,10 @@ Route::post('/company/login', [CompaniesController::class, 'login']);
 Route::post('/company/send-reset-password-email', [CompaniesPasswordResetController::class, 'send_reset_password_email']);
 Route::post('/company/reset-password/{token}', [CompaniesPasswordResetController::class, 'reset']);
 
+//Search Routes
+Route::get('/user_infos/search', [UserinfoController::class, 'search']);
+Route::get('/form_generals/search', [FormGeneralController::class, 'search']);
+Route::get('form_environments/search', [FormEnvironmentController::class, 'search']);
 
 // Protected User, Companies Routes
 Route::middleware(['auth:sanctum'])->group(function(){
@@ -45,7 +49,6 @@ Route::middleware(['auth:sanctum'])->group(function(){
     Route::post('/changepassword', [UserController::class, 'change_password']);
     Route::resource('user_infos', UserinfoController::class);
     Route::post('user_infos/{user_info}', [UserinfoController::class, 'update'])->name('user_infos.update');
-
 
     // Companies Routes
     Route::post('/company/logout', [CompaniesController::class, 'logout']);

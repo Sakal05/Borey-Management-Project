@@ -163,4 +163,36 @@ class formEnvironmentController extends Controller
 
         return response()->json('Form deleted successfully');
     }
+
+    /**
+     * Search user info records.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
+     */
+    public function search(Request $request)
+    {
+        $keyword = $request->input('keyword');
+
+        $query = formEnvironment::query();
+
+        // Add your search criteria based on your needs
+        $query->where('user_id', auth()->user()->user_id)
+        ->where(function ($innerQuery) use ($keyword) {
+            $innerQuery->where('username', 'like', "%$keyword%")
+                ->orWhere('fullname', 'like', "%$keyword%")
+                ->orWhere('email', 'like', "%$keyword%")
+                ->orWhere('category', 'like', "%$keyword%")
+                ->orWhere('problem_description', 'like', "%$keyword%")
+                ->orWhere('environment_status', 'like', "%$keyword%");
+        });
+        $results = $query->get();
+
+        if ($results->isEmpty()) {
+            return response()->json('No data found.', 404);
+        }
+
+        return response()->json($results);
+    }
+
 }

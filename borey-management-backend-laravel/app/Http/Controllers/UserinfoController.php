@@ -53,7 +53,7 @@ class UserinfoController extends Controller
         ]);
 
         if ($validator->fails()) {
-            return response()->json($validator->errors());       
+            return response()->json($validator->errors(), 400);       
         }
 
         // Check if the user_info record already exists for the user
@@ -185,4 +185,36 @@ class UserinfoController extends Controller
 
         return response()->json('User info deleted successfully');
     }
+
+    /**
+     * Search user info records.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
+     */
+    public function search(Request $request)
+    {
+        $keyword = $request->input('keyword');
+
+        $query = User_Info::query();
+
+        // Add your search criteria based on your needs
+        $query->where('user_id', auth()->user()->user_id)
+        ->where(function ($innerQuery) use ($keyword) {
+            $innerQuery->where('dob', 'like', "%$keyword%")
+                ->orWhere('gender', 'like', "%$keyword%")
+                ->orWhere('phonenumber', 'like', "%$keyword%")
+                ->orWhere('house_type', 'like', "%$keyword%")
+                ->orWhere('house_number', 'like', "%$keyword%")
+                ->orWhere('street_number', 'like', "%$keyword%");
+        });
+        $results = $query->get();
+
+        if ($results->isEmpty()) {
+            return response()->json('No data found.', 404);
+        }
+        
+        return response()->json($results);
+    }
+
 }
