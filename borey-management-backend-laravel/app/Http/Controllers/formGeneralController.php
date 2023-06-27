@@ -120,7 +120,7 @@ class formGeneralController extends Controller
         $user = auth()->user();
         // Check if the authenticated user is the owner of the form
         if ($user->user_id !== $formGeneral->user_id) {
-            return response()->json('You are not authorized to update this user info', 403);
+            return response()->json('You are not authorized to update this form', 403);
         }
 
         $formGeneral->user_id;

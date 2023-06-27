@@ -8,4 +8,5 @@ use Illuminate\Database\Eloquent\Model;
 class securitybills extends Model
 {
     use HasFactory;
+    protected $guarded = [];
 }

@@ -2,6 +2,7 @@
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\UserinfoController;
 use App\Http\Controllers\PasswordResetController;
@@ -9,6 +10,9 @@ use App\Http\Controllers\PasswordResetController;
 use App\Http\Controllers\CompaniesController;
 use App\Http\Controllers\CompaniesPasswordResetController;
 
+use App\Http\Controllers\waterbillsController;
+use App\Http\Controllers\securitybillsController;
+use App\Http\Controllers\electricbillsController;
 use App\Http\Controllers\FormGeneralController;
 use App\Http\Controllers\FormEnvironmentController;
 
@@ -40,6 +44,9 @@ Route::post('/company/reset-password/{token}', [CompaniesPasswordResetController
 Route::get('/user_infos/search', [UserinfoController::class, 'search']);
 Route::get('/form_generals/search', [FormGeneralController::class, 'search']);
 Route::get('form_environments/search', [FormEnvironmentController::class, 'search']);
+Route::get('electricbills/search', [electricbillsController::class, 'search']);
+Route::get('securitybills/search', [securitybillsController::class, 'search']);
+Route::get('waterbills/search', [waterbillsController::class, 'search']);
 
 // Protected User, Companies Routes
 Route::middleware(['auth:sanctum'])->group(function(){
@@ -62,6 +69,18 @@ Route::middleware(['auth:sanctum'])->group(function(){
     //Form Environment Request
     Route::resource('form_environments', FormEnvironmentController::class);
     Route::post('form_environments/{form_environment}', [FormEnvironmentController::class, 'update'])->name('form_environments.update');
+
+    //Electricbills Request
+    Route::resource('electricbills', electricbillsController::class);
+    Route::post('electricbills/{electricbill}', [electricbillsController::class, 'update'])->name('electricbills.update');
+
+    //Securitybills Request
+    Route::resource('securitybills', securitybillsController::class);
+    Route::post('securitybills/{securitybill}', [securitybillsController::class, 'update'])->name('securitybills.update');
+
+    //Securitybills Request
+    Route::resource('waterbills', waterbillsController::class);
+    Route::post('waterbills/{waterbills}', [waterbillsController::class, 'update'])->name('waterbills.update');
 
 });
 

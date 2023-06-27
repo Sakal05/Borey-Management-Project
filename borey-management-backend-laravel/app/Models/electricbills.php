@@ -8,4 +8,5 @@ use Illuminate\Database\Eloquent\Model;
 class electricbills extends Model
 {
     use HasFactory;
+    protected $guarded = [];
 }

@@ -39,7 +39,7 @@ class UserinfoController extends Controller
 
         // Check if the user already has a user_info record
         if ($user->user_info) {
-            return response()->json(['error' => 'User already has a user_info record'], 400);
+            return response()->json(['error' => 'User already has a user info record'], 400);
         }
 
         $validator = Validator::make($request->all(), [
@@ -59,7 +59,7 @@ class UserinfoController extends Controller
         // Check if the user_info record already exists for the user
         $existingUserInfo = User_info::where('user_id', $user->user_id)->first();
         if ($existingUserInfo) {
-            return response()->json(['error' => 'User already has a user_info record'], 400);
+            return response()->json(['error' => 'User already has a user info record'], 400);
         }
 
         $user = auth()->user();
@@ -179,7 +179,7 @@ class UserinfoController extends Controller
         $user = auth()->user();
         if ($user->user_id !== $userinfo->user_id) {
             // User is not authorized to delete this form
-            return response()->json('You are not authorized to delete this form', 403);
+            return response()->json('You are not authorized to delete this user info', 403);
         }
         $userinfo->delete();
 

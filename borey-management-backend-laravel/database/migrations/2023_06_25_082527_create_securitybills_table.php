@@ -13,12 +13,16 @@ class CreateSecuritybillsTable extends Migration
      */
     public function up()
     {
-        Schema::create('security_bills', function (Blueprint $table) {
+        Schema::create('securitybills', function (Blueprint $table) {
             $table->id();
             $table->string('user_id');
             $table->string('username');
             $table->string('fullname');
+            $table->string('phonenumber');
+            $table->string('house_type');
             $table->string('house_number');
+            $table->string('street_number');
+            $table->string('category');
             $table->date('date_payment');
             $table->decimal('price', 8, 2);
             $table->string('payment_status');

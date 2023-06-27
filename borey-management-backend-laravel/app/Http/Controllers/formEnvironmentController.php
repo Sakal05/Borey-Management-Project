@@ -82,7 +82,7 @@ class formEnvironmentController extends Controller
     {
         $formEnvironment = formEnvironment::find($id);
         if (is_null($formEnvironment)) {
-            return response()->json('Data not found', 404); 
+            return response()->json('Form not found', 404); 
         }
 
         // Check if the authenticated user is the owner of the form
@@ -117,7 +117,7 @@ class formEnvironmentController extends Controller
         $user = auth()->user();
         // Check if the authenticated user is the owner of the form
         if ($user->user_id !== $formEnvironment->user_id) {
-            return response()->json('You are not authorized to update this user info', 403);
+            return response()->json('You are not authorized to update this form', 403);
         }
 
         $formEnvironment->user_id;

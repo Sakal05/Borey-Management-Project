@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\User_Info;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -73,6 +74,11 @@ class User extends Authenticatable
         }
 
         return $nextUserId;
+    }
+
+    public function userInfo()
+    {
+        return $this->hasOne(User_Info::class, 'user_id');
     }
 
 }
