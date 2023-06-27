@@ -17,7 +17,6 @@ class UserController extends Controller
             'email' => 'required|email',
             'password' => 'required|confirmed',
             'company_id' => 'required',
-            'property_id' => 'required',
             ]);
 
         if(User::where('email', $request->email)->first()){
@@ -33,7 +32,6 @@ class UserController extends Controller
             'email' => $request->email,
             'password' => Hash::make($request->password),
             'company_id' => $request->company_id,
-            'property_id' => $request->property_id,
             'date_registered' => now(), // Set the current date and time
         ]);
 
@@ -90,16 +88,27 @@ class UserController extends Controller
         ], 200);
     }
 
-    public function change_password(Request $request){
+    public function change_password(Request $request)
+    {
         $request->validate([
+            'current_password' => 'required',
             'password' => 'required|confirmed',
         ]);
         $loggeduser = auth()->user();
-        $loggeduser->password = Hash::make($request->password);
-        $loggeduser->save();
-        return response([
-            'message' => 'Password Changed Successfully',
-            'status'=>'success'
-        ], 200);
+
+        if ($loggeduser && Hash::check($request->current_password, $loggeduser->password)) {
+
+            $loggeduser->password = Hash::make($request->password);
+            $loggeduser->save();
+            return response([
+                'message' => 'Password Changed Successfully',
+                'status' => 'success'
+            ], 200);
+        } else {
+            return response([
+                'message' => 'Password Does Not Match',
+                'status' => 'fail'
+            ], 401);
+        }
     }
 }

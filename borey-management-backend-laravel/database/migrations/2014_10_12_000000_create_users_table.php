@@ -45,7 +45,6 @@ class CreateUsersTable extends Migration
             $table->id();
             $table->string('user_id')->unique();
             $table->string('company_id');
-            $table->string('property_id');
             $table->string('username')->default('')->unique();
             $table->string('fullname');
             $table->string('email')->unique();

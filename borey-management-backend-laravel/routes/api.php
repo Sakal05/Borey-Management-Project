@@ -3,6 +3,7 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\UserinfoController;
 use App\Http\Controllers\PasswordResetController;
 
 use App\Http\Controllers\CompaniesController;
@@ -40,9 +41,11 @@ Route::post('/company/reset-password/{token}', [CompaniesPasswordResetController
 Route::middleware(['auth:sanctum'])->group(function(){
 
     // User Routes
-    // Route::post('/logout', [UserController::class, 'logout']);
     Route::get('/loggeduser', [UserController::class, 'logged_user']);
     Route::post('/changepassword', [UserController::class, 'change_password']);
+    Route::resource('user_infos', UserinfoController::class);
+    Route::post('user_infos/{user_info}', [UserinfoController::class, 'update'])->name('user_infos.update');
+
 
     // Companies Routes
     Route::post('/company/logout', [CompaniesController::class, 'logout']);

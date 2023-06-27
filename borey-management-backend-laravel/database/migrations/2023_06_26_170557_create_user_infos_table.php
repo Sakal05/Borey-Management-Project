@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreatePropertiesTable extends Migration
+class CreateUserInfosTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,15 +13,18 @@ class CreatePropertiesTable extends Migration
      */
     public function up()
     {
-        Schema::create('properties', function (Blueprint $table) {
+        Schema::create('user_infos', function (Blueprint $table) {
             $table->id();
-            $table->string('property_id')->unique();
             $table->string('user_id');
-            $table->string('property_type');
-            $table->string('property_detail_id');
+            $table->string('path')->nullable();
+            $table->date('dob');
+            $table->string('gender')->nullable();
+            $table->string('phonenumber');
+            $table->string('house_type');
+            $table->string('house_number');
+            $table->string('street_number');
             $table->timestamps();
 
-            // Add foreign key constraint
             $table->foreign('user_id')->references('user_id')->on('users')->onDelete('cascade');
         });
     }
@@ -33,12 +36,10 @@ class CreatePropertiesTable extends Migration
      */
     public function down()
     {
-        Schema::table('properties', function (Blueprint $table) {
-            // Drop foreign key constraint before dropping the table
+        Schema::dropIfExists('user_infos');
+        Schema::table('user_infos', function (Blueprint $table) {
             $table->dropForeign(['user_id']);
-            $table->dropForeign(['property_detail_id']);
+            $table->dropColumn('user_id');
         });
-
-        Schema::dropIfExists('properties');
     }
 }

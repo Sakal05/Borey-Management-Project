@@ -23,7 +23,6 @@ class User extends Authenticatable
         'email',
         'password',
         'company_id',
-        'property_id',
         'date_registered',
     ];
 
