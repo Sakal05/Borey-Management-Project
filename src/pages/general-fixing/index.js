@@ -10,6 +10,8 @@ import TabContext from '@mui/lab/TabContext'
 import { styled } from '@mui/material/styles'
 import MuiTab from '@mui/material/Tab'
 
+import { AccountSettings } from 'mdi-material-ui'
+import { AutoFix } from 'mdi-material-ui'
 // ** Icons Imports
 import AccountOutline from 'mdi-material-ui/AccountOutline'
 import LockOpenOutline from 'mdi-material-ui/LockOpenOutline'
@@ -63,8 +65,8 @@ const GeneralFixing = () => {
             value='account'
             label={
               <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                <AccountOutline />
-                <TabName>Form</TabName>
+                <AutoFix />
+                <TabName>General Fixing Form</TabName>
               </Box>
             }
           />
