@@ -6,6 +6,10 @@ use Illuminate\Http\Request;
 use App\Models\Companies;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Carbon;
+use App\Models\User;
+use App\Models\formGeneral;
+use App\Http\Resources\FormGeneralResource;
+
 
 class CompaniesController extends Controller
 {
@@ -94,4 +98,51 @@ class CompaniesController extends Controller
             'status' => 'success'
         ], 200);
     }
+
+    public function users($id)
+    {
+        // $company = Companies::findOrFail($id);
+        auth()->user();
+        // // Load the users associated with the company
+        // $users = $company->users;
+
+        $users = User::where('company_id', $id)->get();
+        
+        // Perform any necessary operations on the users
+        
+        return response()->json($users);
+    }
+
+    public function updateStatus(Request $request, formGeneral $formGeneral)
+    {
+        $validator = Validator::make($request->all(), [
+            'category' => 'required|string|max:255',
+            'problem_description' => 'required',
+            'new_image' => 'required', // Add validation for the new image
+            'general_status' => 'required',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json($validator->errors(), 505);
+        }
+        $user = auth()->user();
+        // $user = auth()->user();
+        // Check if the authenticated user is the owner of the form
+        // ======= @!!!!!!!!! add company id column to the table to perform auth to company
+
+        $formGeneral->user_id = $request->user_id;
+        $formGeneral->username = $request->username;
+        $formGeneral->fullname = $request->fullname;
+        $formGeneral->email = $request->email;
+        $formGeneral->category = $request->category;
+        $formGeneral->problem_description = $request->problem_description;
+        $formGeneral->path = $request->new_image;
+        $formGeneral->general_status = $request->general_status; // Update the environment_status value
+
+        $formGeneral->save();
+
+        return response()->json(['Form updated successfully.', new FormGeneralResource($formGeneral)]);
+    }
+
+    
 }

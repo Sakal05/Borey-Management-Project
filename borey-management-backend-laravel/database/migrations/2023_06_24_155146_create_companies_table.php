@@ -19,6 +19,7 @@ class CreateCompaniesTable extends Migration
             $table->string('company_name');
             $table->string('username')->unique();
             $table->string('email')->unique();
+            $table->string('role')->default('admin'); // New column for role with default value 'admin'
             $table->string('password');
             $table->date('date_registered');
             $table->rememberToken();

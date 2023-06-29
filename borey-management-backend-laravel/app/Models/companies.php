@@ -28,6 +28,15 @@ class Companies extends Authenticatable
         'date_registered',
     ];
 
+    // public function users()
+    // {
+    //     return $this->hasMany(User::class);
+    // }
+
+    public function isCompany() {
+        return $this->role === 'admin';
+    }
+
     /**
      * The attributes that should be hidden for serialization.
      *

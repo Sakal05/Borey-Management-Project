@@ -21,7 +21,7 @@ class formEnvironmentController extends Controller
      */
     public function index()
     {
-            
+
         $userId = auth()->user()->user_id;
 
         $data = formEnvironment::where('user_id', $userId)->latest()->get();
@@ -37,24 +37,21 @@ class formEnvironmentController extends Controller
      */
     public function store(Request $request)
     {
-        $validator = Validator::make($request->all(),[
+        $validator = Validator::make($request->all(), [
             'category' => 'required|string|max:255',
             'problem_description' => 'required',
-            'image' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048', // Restrict the file types and size
+            'image' => 'required', // Restrict the file types and size
             'environment_status' => 'required',
         ]);
 
-        if($validator->fails()){
-            return response()->json($validator->errors());       
+        if ($validator->fails()) {
+            return response()->json($validator->errors(), 400);
         }
-        
+
         $user = auth()->user();
         $username = $user->username;
         $fullname = $user->fullname;
         $email = $user->email;
-
-        $imagePath = $request->file('image')->store('images'); // Save the image to the 'images' directory
-
 
         $formEnvironment = formEnvironment::create([
             'user_id' => $user->user_id, // Associate the user ID
@@ -63,13 +60,11 @@ class formEnvironmentController extends Controller
             'email' => $email,
             'category' => $request->category,
             'problem_description' => $request->problem_description,
-            'path' => $imagePath, // Save the image path in the database
+            'path' => $request->image, // Save the image path in the database
             'environment_status' => $request->environment_status,
         ]);
-        
-        return response()->json(['Form created successfully.', new FormEnvironmentResource($formEnvironment)]);
 
-        return response()->json(['error' => 'Image not found.'], 400);
+        return response()->json(['Form created successfully.', new FormEnvironmentResource($formEnvironment)], 201);
     }
 
     /**
@@ -82,7 +77,7 @@ class formEnvironmentController extends Controller
     {
         $formEnvironment = formEnvironment::find($id);
         if (is_null($formEnvironment)) {
-            return response()->json('Form not found', 404); 
+            return response()->json('Form not found', 404);
         }
 
         // Check if the authenticated user is the owner of the form
@@ -103,15 +98,15 @@ class formEnvironmentController extends Controller
      */
     public function update(Request $request, formEnvironment $formEnvironment)
     {
-        $validator = Validator::make($request->all(),[
+        $validator = Validator::make($request->all(), [
             'category' => 'required|string|max:255',
             'problem_description' => 'required',
             'new_image' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048', // Add validation for the new image
             'environment_status' => 'required',
-    ]);
+        ]);
 
-        if($validator->fails()){
-            return response()->json($validator->errors());       
+        if ($validator->fails()) {
+            return response()->json($validator->errors());
         }
 
         $user = auth()->user();
@@ -132,7 +127,7 @@ class formEnvironmentController extends Controller
             if ($formEnvironment->path) {
                 Storage::delete('images/' . $formEnvironment->path);
             }
-    
+
             // Store the new image
             $newImagePath = $request->file('new_image')->store('images');
             $formEnvironment->path = str_replace('images/', '', $newImagePath);
@@ -156,8 +151,8 @@ class formEnvironmentController extends Controller
 
         $user = auth()->user();
         if ($user->id !== $formEnvironment->user_id) {
-        // User is not authorized to delete this form
-        return response()->json('You are not authorized to delete this form', 403);
+            // User is not authorized to delete this form
+            return response()->json('You are not authorized to delete this form', 403);
         }
         $formEnvironment->delete();
 
@@ -178,14 +173,14 @@ class formEnvironmentController extends Controller
 
         // Add your search criteria based on your needs
         $query->where('user_id', auth()->user()->user_id)
-        ->where(function ($innerQuery) use ($keyword) {
-            $innerQuery->where('username', 'like', "%$keyword%")
-                ->orWhere('fullname', 'like', "%$keyword%")
-                ->orWhere('email', 'like', "%$keyword%")
-                ->orWhere('category', 'like', "%$keyword%")
-                ->orWhere('problem_description', 'like', "%$keyword%")
-                ->orWhere('environment_status', 'like', "%$keyword%");
-        });
+            ->where(function ($innerQuery) use ($keyword) {
+                $innerQuery->where('username', 'like', "%$keyword%")
+                    ->orWhere('fullname', 'like', "%$keyword%")
+                    ->orWhere('email', 'like', "%$keyword%")
+                    ->orWhere('category', 'like', "%$keyword%")
+                    ->orWhere('problem_description', 'like', "%$keyword%")
+                    ->orWhere('environment_status', 'like', "%$keyword%");
+            });
         $results = $query->get();
 
         if ($results->isEmpty()) {
@@ -195,4 +190,14 @@ class formEnvironmentController extends Controller
         return response()->json($results);
     }
 
+    public function getImagePath(Request $request)
+    {
+        $image = formEnvironment::find($request->input('image_id'));
+
+        if (!$image) {
+            return response()->json(['error' => 'Image not found'], 404);
+        }
+
+        return response()->json(['path' => $image->path]);
+    }
 }

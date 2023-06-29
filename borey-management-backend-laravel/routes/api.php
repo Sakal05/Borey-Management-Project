@@ -47,6 +47,7 @@ Route::get('form_environments/search', [FormEnvironmentController::class, 'searc
 Route::get('electricbills/search', [electricbillsController::class, 'search']);
 Route::get('securitybills/search', [securitybillsController::class, 'search']);
 Route::get('waterbills/search', [waterbillsController::class, 'search']);
+Route::post('image-path', [FormGeneralController::class, 'getImagePath']);
 
 // Protected User, Companies Routes
 Route::middleware(['auth:sanctum'])->group(function(){
@@ -58,17 +59,22 @@ Route::middleware(['auth:sanctum'])->group(function(){
     Route::post('user_infos/{user_info}', [UserinfoController::class, 'update'])->name('user_infos.update');
 
     // Companies Routes
+    Route::get('/company/{id}/users',  [CompaniesController::class, 'users']);
     Route::post('/company/logout', [CompaniesController::class, 'logout']);
     Route::get('/company/loggedcompany', [CompaniesController::class, 'logged_company']);
     Route::post('/company/changepassword', [CompaniesController::class, 'change_password']);
 
     //Form General Request
     Route::resource('form_generals', FormGeneralController::class);
+    Route::get('all_form_generals', [FormGeneralController::class, 'general_forms']);
+
     Route::post('form_generals/{form_general}', [FormGeneralController::class, 'update'])->name('form_generals.update');
+    Route::post('update_form_generals_status/', [FormGeneralController::class, 'updateStatus']);
 
     //Form Environment Request
     Route::resource('form_environments', FormEnvironmentController::class);
     Route::post('form_environments/{form_environment}', [FormEnvironmentController::class, 'update'])->name('form_environments.update');
+    
 
     //Electricbills Request
     Route::resource('electricbills', electricbillsController::class);
