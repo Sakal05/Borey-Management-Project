@@ -40,7 +40,7 @@ class formGeneralController extends Controller
         $validator = Validator::make($request->all(),[
             'category' => 'required|string|max:255',
             'problem_description' => 'required',
-            'image' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048', // Restrict the file types and size
+            'image' => 'required', // Restrict the file types and size
             'general_status' => 'required',
         ]);
 
@@ -53,8 +53,6 @@ class formGeneralController extends Controller
         $fullname = $user->fullname;
         $email = $user->email;
 
-        $imagePath = $request->file('image')->store('images'); // Save the image to the 'images' directory
-
         $formGeneral = formGeneral::create([
             'user_id' => $user->user_id, // Associate the user ID
             'username' => $username,
@@ -62,13 +60,11 @@ class formGeneralController extends Controller
             'email' => $email,
             'category' => $request->category,
             'problem_description' => $request->problem_description,
-            'path' => $imagePath, // Save the image path in the database
+            'path' => $request->image, // Save the image path in the database
             'general_status' => $request->general_status,
          ]);
         
         return response()->json(['Form created successfully.', new FormGeneralResource($formGeneral)]);
-
-        return response()->json(['error' => 'Image not found.'], 400);
 
     }
 
@@ -109,7 +105,7 @@ class formGeneralController extends Controller
         $validator = Validator::make($request->all(),[
             'category' => 'required|string|max:255',
             'problem_description' => 'required',
-            'new_image' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048', // Add validation for the new image
+            'new_image' => 'required', // Add validation for the new image
             'general_status' => 'required',
         ]);
 
@@ -129,18 +125,7 @@ class formGeneralController extends Controller
         $formGeneral->email;
         $formGeneral->category = $request->category;
         $formGeneral->problem_description = $request->problem_description;
-
-        if ($request->hasFile('new_image')) {
-            // Delete the previous image if needed
-            if ($formGeneral->path) {
-                Storage::delete('images/' . $formGeneral->path);
-            }
-    
-            // Store the new image
-            $newImagePath = $request->file('new_image')->store('images');
-            $formGeneral->path = str_replace('images/', '', $newImagePath);
-        }
-
+        $formGeneral->image = $request->new_image;
         $formGeneral->general_status = $request->general_status; // Update the environment_status value
 
         $formGeneral->save();

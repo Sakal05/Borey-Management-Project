@@ -16,6 +16,7 @@ class CreateCompaniesTable extends Migration
         Schema::create('companies', function (Blueprint $table) {
             $table->id();
             $table->string('company_id')->unique();
+            $table->unsignedBigInteger('role_id')->nullable();
             $table->string('company_name');
             $table->string('username')->unique();
             $table->string('email')->unique();
@@ -23,6 +24,8 @@ class CreateCompaniesTable extends Migration
             $table->date('date_registered');
             $table->rememberToken();
             $table->timestamps();
+
+            $table->foreign('role_id')->references('id')->on('roles');
         });
     }
 

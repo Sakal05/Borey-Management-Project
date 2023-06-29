@@ -6,6 +6,8 @@ use Illuminate\Http\Request;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Carbon;
+use App\Models\Role;
+
 
 class UserController extends Controller
 {
@@ -34,6 +36,13 @@ class UserController extends Controller
             'company_id' => $request->company_id,
             'date_registered' => now(), // Set the current date and time
         ]);
+
+        // Retrieve the desired role from the database
+        $role = Role::where('name', 'user')->first();
+
+        // Assign the role to the user
+        $user->role_id = $role->id;
+        $user->save();
 
         $token = $user->createToken($request->email)->plainTextToken;
         return response([

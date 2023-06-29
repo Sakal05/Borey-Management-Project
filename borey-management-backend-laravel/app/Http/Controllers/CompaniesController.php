@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\Companies;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Carbon;
+use App\Models\Role;
 
 class CompaniesController extends Controller
 {
@@ -32,6 +33,12 @@ class CompaniesController extends Controller
             'password' => Hash::make($request->password),
             'date_registered' => now(), // Set the current date and time
         ]);
+
+        $role = Role::where('name', 'company')->first();
+
+        // Assign the role to the company
+        $company->role_id = $role->id;
+        $company->save();
 
         $token = $company->createToken($request->email)->plainTextToken;
         return response([

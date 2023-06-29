@@ -16,6 +16,7 @@ class CreateUsersTable extends Migration
         Schema::create('users', function (Blueprint $table) {
             $table->id();
             $table->string('user_id')->unique();
+            $table->unsignedBigInteger('role_id')->nullable();
             $table->string('company_id');
             $table->string('username')->default('')->unique();
             $table->string('fullname');
@@ -26,6 +27,7 @@ class CreateUsersTable extends Migration
             $table->rememberToken();
             $table->timestamps();
 
+            $table->foreign('role_id')->references('id')->on('roles');
             $table->foreign('company_id')->references('company_id')->on('companies')->onDelete('cascade');
 
         });
@@ -42,6 +44,8 @@ class CreateUsersTable extends Migration
         Schema::table('users', function (Blueprint $table) {
             $table->dropForeign(['company_id']);
             $table->dropColumn('company_id');
+            $table->dropForeign(['role_id']);
+            $table->dropColumn('role_id');
         });
 
     }

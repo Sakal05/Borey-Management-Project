@@ -40,7 +40,7 @@ class formEnvironmentController extends Controller
         $validator = Validator::make($request->all(),[
             'category' => 'required|string|max:255',
             'problem_description' => 'required',
-            'image' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048', // Restrict the file types and size
+            'image' => 'required', // Restrict the file types and size
             'environment_status' => 'required',
         ]);
 
@@ -53,9 +53,6 @@ class formEnvironmentController extends Controller
         $fullname = $user->fullname;
         $email = $user->email;
 
-        $imagePath = $request->file('image')->store('images'); // Save the image to the 'images' directory
-
-
         $formEnvironment = formEnvironment::create([
             'user_id' => $user->user_id, // Associate the user ID
             'username' => $username,
@@ -63,7 +60,7 @@ class formEnvironmentController extends Controller
             'email' => $email,
             'category' => $request->category,
             'problem_description' => $request->problem_description,
-            'path' => $imagePath, // Save the image path in the database
+            'path' => $request->image, // Save the image path in the database
             'environment_status' => $request->environment_status,
         ]);
         
@@ -106,7 +103,7 @@ class formEnvironmentController extends Controller
         $validator = Validator::make($request->all(),[
             'category' => 'required|string|max:255',
             'problem_description' => 'required',
-            'new_image' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048', // Add validation for the new image
+            'new_image' => 'required', // Add validation for the new image
             'environment_status' => 'required',
     ]);
 
@@ -126,18 +123,7 @@ class formEnvironmentController extends Controller
         $formEnvironment->email;
         $formEnvironment->category = $request->category;
         $formEnvironment->problem_description = $request->problem_description;
-
-        if ($request->hasFile('new_image')) {
-            // Delete the previous image if needed
-            if ($formEnvironment->path) {
-                Storage::delete('images/' . $formEnvironment->path);
-            }
-    
-            // Store the new image
-            $newImagePath = $request->file('new_image')->store('images');
-            $formEnvironment->path = str_replace('images/', '', $newImagePath);
-        }
-
+        $formEnvironment->image = $request->new_image;
         $formEnvironment->environment_status = $request->environment_status; // Update the environment_status value
 
         $formEnvironment->save();
