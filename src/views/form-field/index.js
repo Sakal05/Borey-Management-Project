@@ -23,7 +23,6 @@ import { SettingsContext } from '../../../src/@core/context/settingsContext'
 import axios from 'axios'
 import { toast } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
-import { FruitPear, Image } from 'mdi-material-ui'
 import { useRouter } from 'next/router'
 
 const ButtonStyled = styled(Button)(({ theme }) => ({
@@ -32,8 +31,6 @@ const ButtonStyled = styled(Button)(({ theme }) => ({
     textAlign: 'center'
   }
 }))
-
-const handleChangeImage = () => {}
 
 const ResetButtonStyled = styled(Button)(({ theme }) => ({
   marginLeft: theme.spacing(4.5),
@@ -124,12 +121,9 @@ const FormField = () => {
         setImagePath(imageURL)
         // Use the fetched blob as needed (e.g., display it in an image element)
         // Example: document.getElementById('imageElement').src = URL.createObjectURL(blob);
-        return blob
       } catch (error) {
         toast.error('Unable to load image')
         console.error(error)
-        // Handle error
-        return null
       }
     }
   }
@@ -139,6 +133,26 @@ const FormField = () => {
     console.log(file)
 
     await pinFileToIPFS(file)
+  }
+
+  const handleChangeFile = async e => {
+    const file = e.target.files[0]
+    console.log(file);
+    try {
+      const res = await axios({
+        method: 'delete',
+        url: `https://api.pinata.cloud/pinning/unpin/${formData.image}`,
+        headers: {
+          Authorization: `Bearer ${process.env.JWT}`
+        }
+      })
+      console.log(res);
+      await pinFileToIPFS(file);
+      toast.success("Image change successfully")
+    } catch (e) {
+      toast.error("Please update your image before updating")
+      console.error(e)
+    }
   }
 
   const handleInput = e => {
@@ -164,10 +178,10 @@ const FormField = () => {
 
   const submitForm = async e => {
     // We don't want the page to refresh
-    e.preventDefault();
+    e.preventDefault()
     console.log(formData.category)
     console.log(formData.problem_description)
-    if (formData.category !== "" && formData.problem_description !== "") {
+    if (formData.category !== '' && formData.problem_description !== '') {
       try {
         console.log('Image Field: ', formData.image)
         const res = await axios({
@@ -205,7 +219,7 @@ const FormField = () => {
         console.log(err)
       }
     } else {
-      toast.error("Please fill in the form")
+      toast.error('Please fill in the form')
     }
   }
 
@@ -226,7 +240,7 @@ const FormField = () => {
   }
 
   useEffect(() => {
-    fetchUser()
+    fetchUser();
     fetchUploadedImage(formData.image)
   }, [formData])
 
@@ -291,8 +305,16 @@ const FormField = () => {
                     id='account-settings-upload-image'
                   />
                 </ButtonStyled>
-                <ResetButtonStyled color='error' variant='outlined' onClick={() => setImgSrc('/images/avatars/1.png')}>
+                <ResetButtonStyled component='label' color='error' variant='outlined'>
                   Change
+                  <input
+                    // ref={imageInputRef}
+                    hidden
+                    type='file'
+                    onChange={handleChangeFile}
+                    accept='image/png, image/jpeg'
+                    id='account-upload-image'
+                  />
                 </ResetButtonStyled>
                 <Typography variant='body2' sx={{ marginTop: 5 }}>
                   Allowed PNG or JPEG. Max size of 2MB.
@@ -300,7 +322,7 @@ const FormField = () => {
               </Box>
             </Box>
             {imagePath && uploadingImage !== '' && (
-              <Box sx={{ display: 'flex', justifyContent: 'left', alignItems: 'center' }}>
+              <Box sx={{ display: 'flex', justifyContent: 'left', alignItems: 'center' }} >
                 <img src={imagePath} alt='Image' style={{ maxWidth: '100%', maxHeight: '100%' }} />
               </Box>
             )}
