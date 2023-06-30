@@ -10,6 +10,8 @@ use Validator;
 use App\Models\formEnvironment;
 use App\Models\User;
 use App\Http\Resources\FormEnvironmentResource;
+use App\Models\Role;
+
 
 
 class formEnvironmentController extends Controller
@@ -22,9 +24,14 @@ class formEnvironmentController extends Controller
     public function index()
     {
             
-        $userId = auth()->user()->user_id;
+        $user = auth()->user();
 
-        $data = formEnvironment::where('user_id', $userId)->latest()->get();
+        // Check if the authenticated user is a company
+        if ($user->role->name === Role::COMPANY) {
+            $data = formEnvironment::latest()->get();
+        } else {
+            $data = formEnvironment::where('user_id', $user->id)->latest()->get();
+        }
 
         return response()->json([FormEnvironmentResource::collection($data), 'Programs fetched.']);
     }
@@ -37,6 +44,13 @@ class formEnvironmentController extends Controller
      */
     public function store(Request $request)
     {
+        $user = auth()->user();
+
+        // Check if the authenticated user is a company
+        if ($user->role->name === Role::COMPANY) {
+            return response()->json(['error' => 'Company users are not allowed to create the records'], 403);
+        }
+
         $validator = Validator::make($request->all(),[
             'category' => 'required|string|max:255',
             'problem_description' => 'required',
@@ -84,7 +98,7 @@ class formEnvironmentController extends Controller
 
         // Check if the authenticated user is the owner of the form
         $user = auth()->user();
-        if ($user->user_id !== $formEnvironment->user_id) {
+        if ($user->user_id !== $formEnvironment->user_id && $user->role->name !== Role::COMPANY) {
             return response()->json('You are not authorized to view this form', 403);
         }
 
@@ -98,7 +112,7 @@ class formEnvironmentController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, formEnvironment $formEnvironment)
+    public function update(Request $request, $id)
     {
         $validator = Validator::make($request->all(),[
             'category' => 'required|string|max:255',
@@ -112,8 +126,14 @@ class formEnvironmentController extends Controller
         }
 
         $user = auth()->user();
+
+        $formEnvironment = formEnvironment::find($id);
+
+        if (!$formEnvironment) {
+            return response()->json('Bill not found', 404);
+        }
         // Check if the authenticated user is the owner of the form
-        if ($user->user_id !== $formEnvironment->user_id) {
+        if ($user->user_id !== $formEnvironment->user_id && $user->role->name !== Role::COMPANY) {
             return response()->json('You are not authorized to update this form', 403);
         }
 
@@ -123,7 +143,7 @@ class formEnvironmentController extends Controller
         $formEnvironment->email;
         $formEnvironment->category = $request->category;
         $formEnvironment->problem_description = $request->problem_description;
-        $formEnvironment->image = $request->new_image;
+        $formEnvironment->path = $request->new_image;
         $formEnvironment->environment_status = $request->environment_status; // Update the environment_status value
 
         $formEnvironment->save();
@@ -137,11 +157,13 @@ class formEnvironmentController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function destroy(formEnvironment $formEnvironment)
+    public function destroy($id)
     {
 
         $user = auth()->user();
-        if ($user->id !== $formEnvironment->user_id) {
+        $formEnvironment = formEnvironment::find($id);
+
+        if ($user->id !== $formEnvironment->user_id && $user->role->name !== Role::COMPANY) {
         // User is not authorized to delete this form
         return response()->json('You are not authorized to delete this form', 403);
         }

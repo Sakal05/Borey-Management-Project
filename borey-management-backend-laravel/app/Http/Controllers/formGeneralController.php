@@ -10,6 +10,8 @@ use Validator;
 use App\Models\formGeneral;
 use App\Models\User;
 use App\Http\Resources\FormGeneralResource;
+use App\Models\Role;
+
 
 class formGeneralController extends Controller
 {
@@ -20,13 +22,16 @@ class formGeneralController extends Controller
      */
     public function index()
     {
-        $userId = auth()->user()->user_id;
+        $user = auth()->user();
 
-        $data = formGeneral::where('user_id', $userId)->latest()->get();
+        // Check if the authenticated user is a company
+        if ($user->role->name === Role::COMPANY) {
+            $data = formGeneral::latest()->get();
+        } else {
+            $data = formGeneral::where('user_id', $user->id)->latest()->get();
+        }
+
         return response()->json([FormGeneralResource::collection($data), 'Programs fetched.']);
-
-        // $data = formGeneral::latest()->get();
-        // return response()->json([FormGeneralResource::collection($data), 'Programs fetched.']);
     }
     
     /**
@@ -37,6 +42,13 @@ class formGeneralController extends Controller
      */
     public function store(Request $request)
     {
+        $user = auth()->user();
+
+        // Check if the authenticated user is a company
+        if ($user->role->name === Role::COMPANY) {
+            return response()->json(['error' => 'Company users are not allowed to create user info records'], 403);
+        }
+
         $validator = Validator::make($request->all(),[
             'category' => 'required|string|max:255',
             'problem_description' => 'required',
@@ -68,8 +80,6 @@ class formGeneralController extends Controller
 
     }
 
-    
-
     /**
      * Display the specified resource.
      *
@@ -85,7 +95,7 @@ class formGeneralController extends Controller
 
         // Check if the authenticated user is the owner of the form
         $user = auth()->user();
-        if ($user->user_id !== $formGeneral->user_id) {
+        if ($user->user_id !== $formGeneral->user_id && $user->role->name !== Role::COMPANY) {
             return response()->json('You are not authorized to view this form', 403);
         }
 
@@ -100,7 +110,7 @@ class formGeneralController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, formGeneral $formGeneral)
+    public function update(Request $request, $id)
     {
         $validator = Validator::make($request->all(),[
             'category' => 'required|string|max:255',
@@ -114,8 +124,9 @@ class formGeneralController extends Controller
         }
 
         $user = auth()->user();
+        $formGeneral = formGeneral::find($id);
         // Check if the authenticated user is the owner of the form
-        if ($user->user_id !== $formGeneral->user_id) {
+        if ($user->user_id !== $formGeneral->user_id && $user->role->name !== Role::COMPANY) {
             return response()->json('You are not authorized to update this form', 403);
         }
 
@@ -125,7 +136,7 @@ class formGeneralController extends Controller
         $formGeneral->email;
         $formGeneral->category = $request->category;
         $formGeneral->problem_description = $request->problem_description;
-        $formGeneral->image = $request->new_image;
+        $formGeneral->path = $request->new_image;
         $formGeneral->general_status = $request->general_status; // Update the environment_status value
 
         $formGeneral->save();
@@ -142,7 +153,7 @@ class formGeneralController extends Controller
     public function destroy(formGeneral $formGeneral)
     {
         $user = auth()->user();
-        if ($user->id !== $formGeneral->user_id) {
+        if ($user->id !== $formGeneral->user_id && $user->role->name !== Role::COMPANY) {
         // User is not authorized to delete this form
         return response()->json('You are not authorized to delete this form', 403);
         }

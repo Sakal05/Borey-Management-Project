@@ -81,4 +81,16 @@ class User extends Authenticatable
         return $this->hasOne(User_Info::class, 'user_id');
     }
 
+    /**
+     * Define the relationship between Companies and User models.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function role()
+    {
+        return $this->belongsTo(Role::class);
+    }
+
+
+    
 }

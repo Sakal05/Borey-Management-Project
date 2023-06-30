@@ -9,4 +9,5 @@ class waterbills extends Model
 {
     use HasFactory;
     protected $guarded = [];
+
 }

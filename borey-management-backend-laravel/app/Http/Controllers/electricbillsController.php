@@ -11,6 +11,8 @@ use App\Models\User;
 use App\Models\User_Info;
 use App\Http\Resources\ElectricbillsResource;
 use App\Models\electricbills;
+use App\Models\Role;
+
 
 class electricbillsController extends Controller
 {
@@ -21,11 +23,14 @@ class electricbillsController extends Controller
      */
     public function index()
     {
-            
-        $userId = auth()->user()->user_id;
+        $user = auth()->user();
 
-        $data = electricbills::where('user_id', $userId)->latest()->get();
-
+        // Check if the authenticated user is a company
+        if ($user->role->name === Role::COMPANY) {
+            $data = electricbills::latest()->get();
+        } else {
+            $data = electricbills::where('user_id', $user->id)->latest()->get();
+        }
         return response()->json([ElectricbillsResource::collection($data), 'Programs fetched.']);
     }
 
@@ -37,6 +42,14 @@ class electricbillsController extends Controller
      */
     public function store(Request $request)
     {
+
+        $user = auth()->user();
+
+        // Check if the authenticated user is a company
+        if ($user->role->name === Role::COMPANY) {
+            return response()->json(['error' => 'Company users are not allowed to create user info records'], 403);
+        }
+
         $validator = Validator::make($request->all(),[
             'category' => 'required',
             'date_payment' => 'required',
@@ -87,7 +100,7 @@ class electricbillsController extends Controller
 
         // Check if the authenticated user is the owner of the form
         $user = auth()->user();
-        if ($user->user_id !== $electricbills->user_id) {
+        if ($user->user_id !== $electricbills->user_id && $user->role->name !== Role::COMPANY) {
             return response()->json('You are not authorized to view this bill', 403);
         }
 
@@ -125,7 +138,7 @@ class electricbillsController extends Controller
         }
 
         // Check if the authenticated user is the owner of the user info
-        if ($user->user_id !== $electricbills->user_id) {
+        if ($user->user_id !== $electricbills->user_id && $user->role->name !== Role::COMPANY) {
             return response()->json('You are not authorized to update this bill', 403);
         }
 
@@ -156,7 +169,7 @@ class electricbillsController extends Controller
 
         $electricbills = electricbills::find($id);
 
-        if ($user->user_id !== $electricbills->user_id) {
+        if ($user->user_id !== $electricbills->user_id && $user->role->name !== Role::COMPANY) {
         // User is not authorized to delete this form
         return response()->json('You are not authorized to delete this bill', 403);
         }

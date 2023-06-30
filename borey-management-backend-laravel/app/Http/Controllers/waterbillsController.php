@@ -10,6 +10,7 @@ use Validator;
 use App\Models\User;
 use App\Http\Resources\WaterbillsResource;
 use App\Models\waterbills;
+use App\Models\Role;
 
 class waterbillsController extends Controller
 {
@@ -20,10 +21,14 @@ class waterbillsController extends Controller
      */
     public function index()
     {
-            
-        $userId = auth()->user()->user_id;
+        $user = auth()->user();
 
-        $data = waterbills::where('user_id', $userId)->latest()->get();
+        // Check if the authenticated user is a company
+        if ($user->role->name === Role::COMPANY) {
+            $data = waterbills::latest()->get();
+        } else {
+            $data = waterbills::where('user_id', $user->id)->latest()->get();
+        }
 
         return response()->json([WaterbillsResource::collection($data), 'Programs fetched.']);
     }
@@ -36,6 +41,13 @@ class waterbillsController extends Controller
      */
     public function store(Request $request)
     {
+        $user = auth()->user();
+
+        // Check if the authenticated user is a company
+        if ($user->role->name === Role::COMPANY) {
+            return response()->json(['error' => 'Company users are not allowed to create user info records'], 403);
+        }
+        
         $validator = Validator::make($request->all(),[
             'category' => 'required',
             'date_payment' => 'required',
@@ -79,18 +91,18 @@ class waterbillsController extends Controller
      */
     public function show($id)
     {
-        $waterbills = waterbills::find($id);
-        if (is_null($waterbills)) {
-            return response()->json('Bill not found', 404); 
+        $waterbill = waterbills::find($id);
+        if (is_null($waterbill)) {
+            return response()->json('Water bill not found', 404); 
         }
 
         // Check if the authenticated user is the owner of the form
         $user = auth()->user();
-        if ($user->user_id !== $waterbills->user_id) {
-            return response()->json('You are not authorized to view this bill', 403);
+        if ($user->id !== $waterbill->user_id && $user->role->name !== Role::COMPANY) {
+            return response()->json('You are not authorized to view this user info', 403);
         }
 
-        return response()->json([new WaterbillsResource($waterbills)]);
+        return response()->json([new WaterbillsResource($waterbill)]);
     }
 
     /**
@@ -124,7 +136,7 @@ class waterbillsController extends Controller
         }
 
         // Check if the authenticated user is the owner of the user info
-        if ($user->user_id !== $waterbills->user_id) {
+        if ($user->user_id !== $waterbills->user_id && $user->role->name !== Role::COMPANY) {
             return response()->json('You are not authorized to update this bill', 403);
         }
 
@@ -155,7 +167,7 @@ class waterbillsController extends Controller
 
         $waterbills = waterbills::find($id);
 
-        if ($user->user_id !== $waterbills->user_id) {
+        if ($user->user_id !== $waterbills->user_id && $user->role->name !== Role::COMPANY) {
         // User is not authorized to delete this form
         return response()->json('You are not authorized to delete this bill', 403);
         }
@@ -172,24 +184,48 @@ class waterbillsController extends Controller
      */
     public function search(Request $request)
     {
+        // Retrieve the keyword from the request
         $keyword = $request->input('keyword');
+
+        $user = auth()->user();
 
         $query = waterbills::query();
 
-        // Add your search criteria based on your needs
-        $query->where('user_id', auth()->user()->user_id)
-        ->where(function ($innerQuery) use ($keyword) {
-            $innerQuery->where('username', 'like', "%$keyword%")
-                ->orWhere('fullname', 'like', "%$keyword%")
-                ->orWhere('phonenumber', 'like', "%$keyword%")
-                ->orWhere('house_type', 'like', "%$keyword%")
-                ->orWhere('house_number', 'like', "%$keyword%")
-                ->orWhere('street_number', 'like', "%$keyword%")
-                ->orWhere('category', 'like', "%$keyword%")
-                ->orWhere('date_payment', 'like', "%$keyword%")
-                ->orWhere('price', 'like', "%$keyword%")
-                ->orWhere('payment_status', 'like', "%$keyword%");
-        });
+        if (!$user->role) {
+            return response()->json('You are not authorized to perform this action', 403);
+        }
+
+        // Check if the authenticated user is a company
+        if ($user->role->name === Role::COMPANY) {
+            // Add your search criteria for company role here
+            $query->where(function ($innerQuery) use ($keyword) {
+                $innerQuery->where('username', 'like', "%$keyword%")
+                    ->orWhere('fullname', 'like', "%$keyword%")
+                    ->orWhere('phonenumber', 'like', "%$keyword%")
+                    ->orWhere('house_type', 'like', "%$keyword%")
+                    ->orWhere('house_number', 'like', "%$keyword%")
+                    ->orWhere('street_number', 'like', "%$keyword%")
+                    ->orWhere('category', 'like', "%$keyword%")
+                    ->orWhere('date_payment', 'like', "%$keyword%")
+                    ->orWhere('price', 'like', "%$keyword%")
+                    ->orWhere('payment_status', 'like', "%$keyword%");
+            });
+        } else {
+            // Add your search criteria for other roles here
+            $query->where('user_id', $user->id)->where(function ($innerQuery) use ($keyword) {
+                $innerQuery->where('username', 'like', "%$keyword%")
+                    ->orWhere('fullname', 'like', "%$keyword%")
+                    ->orWhere('phonenumber', 'like', "%$keyword%")
+                    ->orWhere('house_type', 'like', "%$keyword%")
+                    ->orWhere('house_number', 'like', "%$keyword%")
+                    ->orWhere('street_number', 'like', "%$keyword%")
+                    ->orWhere('category', 'like', "%$keyword%")
+                    ->orWhere('date_payment', 'like', "%$keyword%")
+                    ->orWhere('price', 'like', "%$keyword%")
+                    ->orWhere('payment_status', 'like', "%$keyword%");
+            });
+        }
+
         $results = $query->get();
 
         if ($results->isEmpty()) {

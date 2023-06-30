@@ -77,4 +77,14 @@ class Companies extends Authenticatable
         return $nextCompanyId;
     }
 
+    /**
+     * Define the relationship between Companies and User models.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function role()
+    {
+        return $this->belongsTo(Role::class);
+    }
+
 }

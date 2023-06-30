@@ -8,8 +8,9 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Validator;
 use App\Models\User_info;
+use App\Models\User;
 use App\Http\Resources\UserinfoResource;
-
+use App\Models\Role;
 
 class UserinfoController extends Controller
 {
@@ -20,12 +21,16 @@ class UserinfoController extends Controller
      */
     public function index()
     {
-            
-        $userId = auth()->user()->user_id;
+        $user = auth()->user();
 
-        $data = User_info::where('user_id', $userId)->latest()->get();
+        // Check if the authenticated user is a company
+        if ($user->role->name === Role::COMPANY) {
+            $data = User_Info::latest()->get();
+        } else {
+            $data = User_Info::where('user_id', $user->id)->latest()->get();
+        }
 
-        return response()->json([UserinfoResource::collection($data), 'Programs fetched.']);
+        return response()->json([UserinfoResource::collection($data), 'User info fetched.']);
     }
 
     /**
@@ -42,8 +47,13 @@ class UserinfoController extends Controller
             return response()->json(['error' => 'User already has a user info record'], 400);
         }
 
+        // Check if the authenticated user is a company
+        if ($user->role->name === Role::COMPANY) {
+            return response()->json(['error' => 'Company users are not allowed to create user info records'], 403);
+        }
+
         $validator = Validator::make($request->all(), [
-            'image' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'image' => 'required',
             'dob' => 'required',
             'gender' => 'required|string|max:255',
             'phonenumber' => 'required|string|max:255',
@@ -64,12 +74,12 @@ class UserinfoController extends Controller
 
         $user = auth()->user();
 
-        $imagePath = $request->file('image')->store('images'); // Save the image to the 'images' directory
-
-
         $userinfo = User_info::create([
             'user_id' => $user->user_id, // Associate the user ID
-            'path' => $imagePath,
+            'username' => $user->username,
+            'fullname' => $user->fullname,
+            'email' => $user->email,
+            'path' => $request->image,
             'dob' => $request->dob,
             'gender' => $request->gender,
             'phonenumber' => $request->phonenumber,
@@ -80,7 +90,6 @@ class UserinfoController extends Controller
         
         return response()->json(['message' => 'User Info created successfully', 'userinfo' => new UserinfoResource($userinfo)]);
 
-        return response()->json(['error' => 'Image not found.'], 400);
     }
 
 
@@ -99,7 +108,7 @@ class UserinfoController extends Controller
 
         // Check if the authenticated user is the owner of the form
         $user = auth()->user();
-        if ($user->user_id !== $userinfo->user_id) {
+        if ($user->id !== $userinfo->user_id && $user->role->name !== Role::COMPANY) {
             return response()->json('You are not authorized to view this user info', 403);
         }
 
@@ -116,7 +125,7 @@ class UserinfoController extends Controller
     public function update(Request $request, $id){
 
         $validator = Validator::make($request->all(), [
-            'new_image' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'new_image' => 'required',
             'dob' => 'required',
             'gender' => 'required|string|max:255',
             'phonenumber' => 'required|string|max:255',
@@ -137,24 +146,13 @@ class UserinfoController extends Controller
             return response()->json('User info not found', 404);
         }
 
-        // Check if the authenticated user is the owner of the user info
-        if ($user->user_id !== $userinfo->user_id) {
+        // Check if the authenticated user is the owner of the user info or a company
+        $user = auth()->user();
+        if ($user->id !== $userinfo->user_id && $user->role->name !== Role::COMPANY) {
             return response()->json('You are not authorized to update this user info', 403);
         }
 
-        
-
-        if ($request->hasFile('new_image')) {
-            // Delete the previous image if needed
-            if ($userinfo->path) {
-                Storage::delete('images/' . $userinfo->path);
-            }
-
-            // Store the new image
-            $newImagePath = $request->file('new_image')->store('images');
-            $userinfo->path = str_replace('images/', '', $newImagePath);
-        }
-
+        $userinfo->path = $request->new_image;
         $userinfo->dob = $request->dob;
         $userinfo->gender = $request->gender;
         $userinfo->phonenumber = $request->phonenumber;
@@ -173,14 +171,22 @@ class UserinfoController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function destroy(User_info $userinfo)
+    public function destroy($id)
     {
 
+        // Retrieve the existing User_info record
+        $userinfo = User_Info::find($id);
+
+        if (!$userinfo) {
+            return response()->json('User info not found', 404);
+        }
+
+        // Check if the authenticated user is the owner of the user info or a company
         $user = auth()->user();
-        if ($user->user_id !== $userinfo->user_id) {
-            // User is not authorized to delete this form
+        if ($user->id !== $userinfo->user_id && $user->role->name !== Role::COMPANY) {
             return response()->json('You are not authorized to delete this user info', 403);
         }
+
         $userinfo->delete();
 
         return response()->json('User info deleted successfully');

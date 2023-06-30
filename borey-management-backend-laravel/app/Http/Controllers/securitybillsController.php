@@ -10,6 +10,8 @@ use Validator;
 use App\Models\User;
 use App\Http\Resources\SecuritybillsResource;
 use App\Models\securitybills;
+use App\Models\Role;
+
 
 class securitybillsController extends Controller
 {
@@ -20,11 +22,15 @@ class securitybillsController extends Controller
      */
     public function index()
     {
-            
-        $userId = auth()->user()->user_id;
 
-        $data = securitybills::where('user_id', $userId)->latest()->get();
+        $user = auth()->user();
 
+        // Check if the authenticated user is a company
+        if ($user->role->name === Role::COMPANY) {
+            $data = securitybills::latest()->get();
+        } else {
+            $data = securitybills::where('user_id', $user->id)->latest()->get();
+        }
         return response()->json([SecuritybillsResource::collection($data), 'Programs fetched.']);
     }
 
@@ -36,6 +42,13 @@ class securitybillsController extends Controller
      */
     public function store(Request $request)
     {
+        $user = auth()->user();
+
+        // Check if the authenticated user is a company
+        if ($user->role->name === Role::COMPANY) {
+            return response()->json(['error' => 'Company users are not allowed to create user info records'], 403);
+        }
+
         $validator = Validator::make($request->all(),[
             'category' => 'required',
             'date_payment' => 'required',
@@ -86,7 +99,7 @@ class securitybillsController extends Controller
 
         // Check if the authenticated user is the owner of the form
         $user = auth()->user();
-        if ($user->user_id !== $securitybills->user_id) {
+        if ($user->user_id !== $securitybills->user_id && $user->role->name !== Role::COMPANY) {
             return response()->json('You are not authorized to view this bill', 403);
         }
 
@@ -124,7 +137,7 @@ class securitybillsController extends Controller
         }
 
         // Check if the authenticated user is the owner of the user info
-        if ($user->user_id !== $securitybills->user_id) {
+        if ($user->user_id !== $securitybills->user_id && $user->role->name !== Role::COMPANY) {
             return response()->json('You are not authorized to update this bill', 403);
         }
 
@@ -155,7 +168,7 @@ class securitybillsController extends Controller
 
         $securitybills = securitybills::find($id);
 
-        if ($user->user_id !== $securitybills->user_id) {
+        if ($user->user_id !== $securitybills->user_id && $user->role->name !== Role::COMPANY) {
         // User is not authorized to delete this form
         return response()->json('You are not authorized to delete this bill', 403);
         }

@@ -35,6 +35,7 @@ Route::post('/reset-password/{token}', [PasswordResetController::class, 'reset']
 Route::post('logout', [UserController::class, 'logout'])->middleware('auth:sanctum');
 
 // Companies Routes
+
 Route::post('/company/register', [CompaniesController::class, 'register']);
 Route::post('/company/login', [CompaniesController::class, 'login']);
 Route::post('/company/send-reset-password-email', [CompaniesPasswordResetController::class, 'send_reset_password_email']);
@@ -58,6 +59,7 @@ Route::middleware(['auth:sanctum'])->group(function(){
     Route::post('user_infos/{user_info}', [UserinfoController::class, 'update'])->name('user_infos.update');
 
     // Companies Routes
+
     Route::post('/company/logout', [CompaniesController::class, 'logout']);
     Route::get('/company/loggedcompany', [CompaniesController::class, 'logged_company']);
     Route::post('/company/changepassword', [CompaniesController::class, 'change_password']);
