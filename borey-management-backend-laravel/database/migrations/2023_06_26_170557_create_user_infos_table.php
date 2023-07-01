@@ -20,12 +20,12 @@ class CreateUserInfosTable extends Migration
             $table->string('fullname');
             $table->string('email');
             $table->string('path')->nullable();
-            $table->date('dob');
+            $table->date('dob')->nullable();
             $table->string('gender')->nullable();
-            $table->string('phonenumber');
-            $table->string('house_type');
-            $table->string('house_number');
-            $table->string('street_number');
+            $table->string('phonenumber')->nullable();
+            $table->string('house_type')->nullable();
+            $table->string('house_number')->nullable();
+            $table->string('street_number')->nullable();
             $table->timestamps();
 
             $table->foreign('user_id')->references('user_id')->on('users')->onDelete('cascade');
@@ -40,9 +40,5 @@ class CreateUserInfosTable extends Migration
     public function down()
     {
         Schema::dropIfExists('user_infos');
-        Schema::table('user_infos', function (Blueprint $table) {
-            $table->dropForeign(['user_id']);
-            $table->dropColumn('user_id');
-        });
     }
 }

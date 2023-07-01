@@ -33,7 +33,8 @@ class formEnvironmentController extends Controller
             $data = formEnvironment::where('user_id', $user->id)->latest()->get();
         }
 
-        return response()->json([FormEnvironmentResource::collection($data), 'Programs fetched.']);
+        return response($data, 200);
+        // return response()->json([FormEnvironmentResource::collection($data), 'Programs fetched.']);
     }
 
     /**
@@ -78,9 +79,9 @@ class formEnvironmentController extends Controller
             'environment_status' => $request->environment_status,
         ]);
         
-        return response()->json(['Form created successfully.', new FormEnvironmentResource($formEnvironment)]);
+        return response()->json($formEnvironment, 200);
+        // return response()->json(['Form created successfully.', new FormEnvironmentResource($formEnvironment)]);
 
-        return response()->json(['error' => 'Image not found.'], 400);
     }
 
     /**
@@ -102,7 +103,8 @@ class formEnvironmentController extends Controller
             return response()->json('You are not authorized to view this form', 403);
         }
 
-        return response()->json([new FormEnvironmentResource($formEnvironment)]);
+        return response()->json($formEnvironment, 200);
+        // return response()->json([new FormEnvironmentResource($formEnvironment)]);
     }
 
     /**
@@ -148,7 +150,8 @@ class formEnvironmentController extends Controller
 
         $formEnvironment->save();
 
-        return response()->json(['Form updated successfully.', new FormEnvironmentResource($formEnvironment)]);
+        return response()->json($formEnvironment, 200);
+        // return response()->json(['Form updated successfully.', new FormEnvironmentResource($formEnvironment)]);
     }
 
     /**
@@ -163,7 +166,7 @@ class formEnvironmentController extends Controller
         $user = auth()->user();
         $formEnvironment = formEnvironment::find($id);
 
-        if ($user->id !== $formEnvironment->user_id && $user->role->name !== Role::COMPANY) {
+        if ($user->user_id !== $formEnvironment->user_id && $user->role->name !== Role::COMPANY) {
         // User is not authorized to delete this form
         return response()->json('You are not authorized to delete this form', 403);
         }

@@ -22,6 +22,7 @@ class UserinfoController extends Controller
     public function index()
     {
         $user = auth()->user();
+        $data = [];
 
         // Check if the authenticated user is a company
         if ($user->role->name === Role::COMPANY) {
@@ -30,7 +31,8 @@ class UserinfoController extends Controller
             $data = User_Info::where('user_id', $user->id)->latest()->get();
         }
 
-        return response()->json([UserinfoResource::collection($data), 'User info fetched.']);
+        return response($data, 200);
+        //return response()->json([UserinfoResource::collection($data), 'User info fetched.']);
     }
 
     /**
@@ -88,7 +90,8 @@ class UserinfoController extends Controller
             'street_number' => $request->street_number,
         ]);
         
-        return response()->json(['message' => 'User Info created successfully', 'userinfo' => new UserinfoResource($userinfo)]);
+        return response()->json($userinfo, 200);
+        // return response()->json(['message' => 'User Info created successfully', 'userinfo' => new UserinfoResource($userinfo)]);
 
     }
 
@@ -108,11 +111,12 @@ class UserinfoController extends Controller
 
         // Check if the authenticated user is the owner of the form
         $user = auth()->user();
-        if ($user->id !== $userinfo->user_id && $user->role->name !== Role::COMPANY) {
+        if ($user->user_id !== $userinfo->user_id && $user->role->name !== Role::COMPANY) {
             return response()->json('You are not authorized to view this user info', 403);
         }
 
-        return response()->json([new UserinfoResource($userinfo)]);
+        return response()->json($userinfo, 200);
+        // return response()->json([new UserinfoResource($userinfo)]);
     }
 
     /**
@@ -148,7 +152,7 @@ class UserinfoController extends Controller
 
         // Check if the authenticated user is the owner of the user info or a company
         $user = auth()->user();
-        if ($user->id !== $userinfo->user_id && $user->role->name !== Role::COMPANY) {
+        if ($user->user_id !== $userinfo->user_id && $user->role->name !== Role::COMPANY) {
             return response()->json('You are not authorized to update this user info', 403);
         }
 
@@ -161,7 +165,8 @@ class UserinfoController extends Controller
         $userinfo->street_number = $request->street_number;
         $userinfo->save();
 
-        return response()->json(['message' => 'User info updated successfully.', 'userinfo' => new UserinfoResource($userinfo)]);
+        return response()->json($userinfo, 200);
+        // return response()->json(['message' => 'User info updated successfully.', 'userinfo' => new UserinfoResource($userinfo)]);
     }
 
 

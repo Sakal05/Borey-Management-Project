@@ -31,7 +31,8 @@ class formGeneralController extends Controller
             $data = formGeneral::where('user_id', $user->id)->latest()->get();
         }
 
-        return response()->json([FormGeneralResource::collection($data), 'Programs fetched.']);
+        return response($data, 200);
+        // return response()->json([FormGeneralResource::collection($data), 'Programs fetched.']);
     }
     
     /**
@@ -76,7 +77,8 @@ class formGeneralController extends Controller
             'general_status' => $request->general_status,
          ]);
         
-        return response()->json(['Form created successfully.', new FormGeneralResource($formGeneral)]);
+        return response()->json($formGeneral, 200);
+        // return response()->json(['Form created successfully.', new FormGeneralResource($formGeneral)]);
 
     }
 
@@ -99,7 +101,8 @@ class formGeneralController extends Controller
             return response()->json('You are not authorized to view this form', 403);
         }
 
-        return response()->json([new FormGeneralResource($formGeneral)]);
+        return response()->json($formGeneral, 200);
+        // return response()->json([new FormGeneralResource($formGeneral)]);
     }
     
 
@@ -141,7 +144,8 @@ class formGeneralController extends Controller
 
         $formGeneral->save();
         
-        return response()->json(['Form updated successfully.', new FormGeneralResource($formGeneral)]);
+        return response()->json($formGeneral, 200);
+        // return response()->json(['Form updated successfully.', new FormGeneralResource($formGeneral)]);
     }
 
     /**
@@ -153,7 +157,7 @@ class formGeneralController extends Controller
     public function destroy(formGeneral $formGeneral)
     {
         $user = auth()->user();
-        if ($user->id !== $formGeneral->user_id && $user->role->name !== Role::COMPANY) {
+        if ($user->user_id !== $formGeneral->user_id && $user->role->name !== Role::COMPANY) {
         // User is not authorized to delete this form
         return response()->json('You are not authorized to delete this form', 403);
         }

@@ -30,7 +30,8 @@ class waterbillsController extends Controller
             $data = waterbills::where('user_id', $user->id)->latest()->get();
         }
 
-        return response()->json([WaterbillsResource::collection($data), 'Programs fetched.']);
+        return response($data, 200);
+        // return response()->json([WaterbillsResource::collection($data), 'Programs fetched.']);
     }
 
     /**
@@ -78,9 +79,8 @@ class waterbillsController extends Controller
             'payment_status' => $request->payment_status,
         ]);
         
-        return response()->json(['Bill created successfully.', new WaterbillsResource($waterbills)]);
-
-        return response()->json(['error' => 'Image not found.'], 400);
+        return response()->json($waterbills, 200);
+        // return response()->json(['Bill created successfully.', new WaterbillsResource($waterbills)]);
     }
 
     /**
@@ -91,18 +91,19 @@ class waterbillsController extends Controller
      */
     public function show($id)
     {
-        $waterbill = waterbills::find($id);
-        if (is_null($waterbill)) {
+        $waterbills = waterbills::find($id);
+        if (is_null($waterbills)) {
             return response()->json('Water bill not found', 404); 
         }
 
         // Check if the authenticated user is the owner of the form
         $user = auth()->user();
-        if ($user->id !== $waterbill->user_id && $user->role->name !== Role::COMPANY) {
+        if ($user->user_id !== $waterbills->user_id && $user->role->name !== Role::COMPANY) {
             return response()->json('You are not authorized to view this user info', 403);
         }
 
-        return response()->json([new WaterbillsResource($waterbill)]);
+        return response()->json($waterbills, 200);
+        // return response()->json([new WaterbillsResource($waterbill)]);
     }
 
     /**
@@ -149,8 +150,8 @@ class waterbillsController extends Controller
         // Saving the updated electric bill form
         $waterbills->save();
 
-        // Returning the response
-        return response()->json(['Bill updated successfully.', new WaterbillsResource($waterbills)]);
+        return response()->json($waterbills, 200);
+        // return response()->json(['Bill updated successfully.', new WaterbillsResource($waterbills)]);
     }
 
 
