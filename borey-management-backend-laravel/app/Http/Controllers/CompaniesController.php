@@ -80,7 +80,11 @@ class CompaniesController extends Controller
 
     public function logged_company()
     {
+
         $loggedCompany = auth()->user();
+        if ($loggedCompany->role->name !== Role::COMPANY) {
+            return response()->json(['error' => 'Unauthorized, you must be a company!'], 403);
+        }
         return response([
             'company' => $loggedCompany,
             'message' => 'Logged Company Data',

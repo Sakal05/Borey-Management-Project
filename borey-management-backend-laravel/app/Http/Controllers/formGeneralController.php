@@ -32,7 +32,6 @@ class formGeneralController extends Controller
         }
 
         return response($data, 200);
-        // return response()->json([FormGeneralResource::collection($data), 'Programs fetched.']);
     }
     
     /**
@@ -144,8 +143,8 @@ class formGeneralController extends Controller
 
         $formGeneral->save();
         
-        return response()->json($formGeneral, 200);
-        // return response()->json(['Form updated successfully.', new FormGeneralResource($formGeneral)]);
+
+        return response($formGeneral, 200);
     }
 
     /**
