@@ -80,9 +80,7 @@ class electricbillsController extends Controller
             'payment_status' => $request->payment_status,
         ]);
         
-        return response()->json(['Bill created successfully.', new ElectricbillsResource($electricbills)]);
-
-        return response()->json(['error' => 'Image not found.'], 400);
+        return response($electricbills, 200);
     }
 
     /**
@@ -152,7 +150,7 @@ class electricbillsController extends Controller
         $electricbills->save();
 
         // Returning the response
-        return response()->json(['Bill updated successfully.', new ElectricbillsResource($electricbills)]);
+        return response($$electricbills, 200);
     }
 
 

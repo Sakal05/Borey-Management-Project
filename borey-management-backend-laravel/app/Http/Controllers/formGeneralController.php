@@ -31,7 +31,7 @@ class formGeneralController extends Controller
             $data = formGeneral::where('user_id', $user->id)->latest()->get();
         }
 
-        return response()->json([FormGeneralResource::collection($data), 'Programs fetched.']);
+        return response($data, 200);
     }
     
     /**
@@ -141,7 +141,7 @@ class formGeneralController extends Controller
 
         $formGeneral->save();
         
-        return response()->json(['Form updated successfully.', new FormGeneralResource($formGeneral)]);
+        return response($formGeneral, 200);
     }
 
     /**

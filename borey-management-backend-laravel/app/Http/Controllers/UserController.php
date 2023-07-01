@@ -7,6 +7,7 @@ use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Carbon;
 use App\Models\Role;
+use App\Models\User_info;
 
 
 class UserController extends Controller
@@ -43,6 +44,20 @@ class UserController extends Controller
         // Assign the role to the user
         $user->role_id = $role->id;
         $user->save();
+        
+        $userInfo = User_info::create([
+            'user_id' => $user->user_id, // Associate the user ID
+            'image_cid' => $request->image_cid,
+            'dob' => $request->dob,
+            'gender' => $request->gender,
+            'phonenumber' => $request->phonenumber,
+            'house_type' => $request->house_type,
+            'house_number' => $request->house_number,
+            'street_number' => $request->street_number,
+            'created_at' => now()
+        ]);
+
+        $userInfo->save();
 
         $token = $user->createToken($request->email)->plainTextToken;
         return response([

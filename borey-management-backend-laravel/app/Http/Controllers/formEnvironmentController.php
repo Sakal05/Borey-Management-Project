@@ -33,7 +33,7 @@ class formEnvironmentController extends Controller
             $data = formEnvironment::where('user_id', $user->id)->latest()->get();
         }
 
-        return response()->json([FormEnvironmentResource::collection($data), 'Programs fetched.']);
+        return response($data, 200);
     }
 
     /**
@@ -148,7 +148,7 @@ class formEnvironmentController extends Controller
 
         $formEnvironment->save();
 
-        return response()->json(['Form updated successfully.', new FormEnvironmentResource($formEnvironment)]);
+        return response($formEnvironment, 200);
     }
 
     /**
