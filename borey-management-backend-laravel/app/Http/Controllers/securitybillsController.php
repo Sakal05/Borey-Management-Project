@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Validator;
-use App\Models\User;
+use App\Models\User_info;
 use App\Http\Resources\SecuritybillsResource;
 use App\Models\securitybills;
 use App\Models\Role;
@@ -29,7 +29,7 @@ class securitybillsController extends Controller
         if ($user->role->name === Role::COMPANY) {
             $data = securitybills::latest()->get();
         } else {
-            $data = securitybills::where('user_id', $user->id)->latest()->get();
+            $data = securitybills::where('user_id', $user->user_id)->latest()->get();
         }
         
         return response($data, 200);
@@ -63,18 +63,16 @@ class securitybillsController extends Controller
         }
         
         $user = auth()->user();
-        $username = $user->username;
-        $fullname = $user->fullname;
-        $userInfo = $user->userInfo; 
+        $userInfo = User_Info::where('user_id', $user->user_id)->first();
 
         $securitybills = securitybills::create([
-            'user_id' => $user->user_id, // Associate the user ID
-            'username' => $username,
-            'fullname' => $fullname,
+            'user_id' => $userInfo->user_id, // Associate the user ID
+            'username' => $userInfo->username,
+            'fullname' => $userInfo->fullname,
             'phonenumber' => $userInfo->phonenumber, // Retrieve the value from the user info
             'house_type' => $userInfo->house_type, // Retrieve the value from the user info
             'house_number' => $userInfo->house_number, // Retrieve the value from the user info
-            'street_number' => $userInfo->street_number,
+            'street_number' => $userInfo->street_number, // Retrieve the value from the user info
             'category' => $request->category,
             'date_payment' => $request->date_payment,
             'price' => $request->price,

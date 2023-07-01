@@ -30,7 +30,7 @@ class formEnvironmentController extends Controller
         if ($user->role->name === Role::COMPANY) {
             $data = formEnvironment::latest()->get();
         } else {
-            $data = formEnvironment::where('user_id', $user->id)->latest()->get();
+            $data = formEnvironment::where('user_id', $user->user_id)->latest()->get();
         }
 
         return response($data, 200);

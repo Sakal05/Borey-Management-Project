@@ -28,7 +28,7 @@ class formGeneralController extends Controller
         if ($user->role->name === Role::COMPANY) {
             $data = formGeneral::latest()->get();
         } else {
-            $data = formGeneral::where('user_id', $user->id)->latest()->get();
+            $data = formGeneral::where('user_id', $user->user_id)->latest()->get();
         }
 
         return response($data, 200);

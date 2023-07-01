@@ -22,17 +22,16 @@ class UserinfoController extends Controller
     public function index()
     {
         $user = auth()->user();
-        $data = [];
 
         // Check if the authenticated user is a company
         if ($user->role->name === Role::COMPANY) {
             $data = User_Info::latest()->get();
         } else {
-            $data = User_Info::where('user_id', $user->id)->latest()->get();
+            $data = User_Info::where('user_id', $user->user_id)->latest()->get();
         }
 
         return response($data, 200);
-        //return response()->json([UserinfoResource::collection($data), 'User info fetched.']);
+        // return response()->json([UserinfoResource::collection($data), 'User info fetched.']);
     }
 
     /**
