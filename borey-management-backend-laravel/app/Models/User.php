@@ -38,6 +38,33 @@ class User extends Authenticatable
     ];
 
     /**
+     * The "booted" method of the model.
+     *
+     * @return void
+     */
+    public static function boot()
+    {
+        parent::boot();
+
+        static::created(function ($user) {
+            // Create a corresponding User_Info record
+            User_Info::create([
+                'user_id' => $user->user_id,
+                'username' => $user->username,
+                'fullname' => $user->fullname,
+                'email' => $user->email,
+                'path' => null,
+                'dob' => null,
+                'gender' => null,
+                'phonenumber' => null,
+                'house_type' => null,
+                'house_number' => null,
+                'street_number' => null,
+            ]);
+        });
+    }
+
+    /**
      * The attributes that should be cast.
      *
      * @var array<string, string>
@@ -90,7 +117,5 @@ class User extends Authenticatable
     {
         return $this->belongsTo(Role::class);
     }
-
-
     
 }

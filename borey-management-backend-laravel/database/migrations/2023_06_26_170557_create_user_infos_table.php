@@ -16,9 +16,6 @@ class CreateUserInfosTable extends Migration
         Schema::create('user_infos', function (Blueprint $table) {
             $table->id();
             $table->string('user_id');
-            // $table->string('username');
-            // $table->string('fullname');
-            // $table->string('email');
             $table->string('image_cid')->nullable();
             $table->date('dob')->nullable();
             $table->string('gender')->nullable();
@@ -40,9 +37,5 @@ class CreateUserInfosTable extends Migration
     public function down()
     {
         Schema::dropIfExists('user_infos');
-        Schema::table('user_infos', function (Blueprint $table) {
-            $table->dropForeign(['user_id']);
-            $table->dropColumn('user_id');
-        });
     }
 }

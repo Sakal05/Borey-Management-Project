@@ -31,7 +31,9 @@ class securitybillsController extends Controller
         } else {
             $data = securitybills::where('user_id', $user->id)->latest()->get();
         }
-        return response()->json([SecuritybillsResource::collection($data), 'Programs fetched.']);
+        
+        return response($data, 200);
+        // return response()->json([SecuritybillsResource::collection($data), 'Programs fetched.']);
     }
 
     /**
@@ -79,9 +81,8 @@ class securitybillsController extends Controller
             'payment_status' => $request->payment_status,
         ]);
         
-        return response()->json(['Bill created successfully.', new SecuritybillsResource($securitybills)]);
-
-        return response()->json(['error' => 'Image not found.'], 400);
+        return response()->json($securitybills, 200);
+        //return response()->json(['Bill created successfully.', new SecuritybillsResource($securitybills)]);
     }
 
     /**
@@ -103,7 +104,8 @@ class securitybillsController extends Controller
             return response()->json('You are not authorized to view this bill', 403);
         }
 
-        return response()->json([new SecuritybillsResource($securitybills)]);
+        return response()->json($securitybills, 200);
+        // return response()->json([new SecuritybillsResource($securitybills)]);
     }
 
     /**
@@ -150,8 +152,8 @@ class securitybillsController extends Controller
         // Saving the updated electric bill form
         $securitybills->save();
 
-        // Returning the response
-        return response()->json(['Bill updated successfully.', new SecuritybillsResource($securitybills)]);
+        return response()->json($securitybills, 200);
+        // return response()->json(['Bill updated successfully.', new SecuritybillsResource($securitybills)]);
     }
 
 

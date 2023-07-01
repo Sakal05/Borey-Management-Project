@@ -31,7 +31,9 @@ class electricbillsController extends Controller
         } else {
             $data = electricbills::where('user_id', $user->id)->latest()->get();
         }
-        return response()->json([ElectricbillsResource::collection($data), 'Programs fetched.']);
+        
+        return response($data, 200);
+        // return response()->json([ElectricbillsResource::collection($data), 'Programs fetched.']);
     }
 
     /**
@@ -80,7 +82,9 @@ class electricbillsController extends Controller
             'payment_status' => $request->payment_status,
         ]);
         
+
         return response($electricbills, 200);
+
     }
 
     /**
@@ -102,7 +106,8 @@ class electricbillsController extends Controller
             return response()->json('You are not authorized to view this bill', 403);
         }
 
-        return response()->json([new ElectricbillsResource($electricbills)]);
+        return response()->json($electricbills, 200);
+        // return response()->json([new ElectricbillsResource($electricbills)]);
     }
 
     /**
@@ -149,8 +154,10 @@ class electricbillsController extends Controller
         // Saving the updated electric bill form
         $electricbills->save();
 
+
         // Returning the response
         return response($$electricbills, 200);
+
     }
 
 
