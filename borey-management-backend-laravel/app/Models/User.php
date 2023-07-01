@@ -103,10 +103,10 @@ class User extends Authenticatable
         return $nextUserId;
     }
 
-    public function userInfo()
-    {
-        return $this->hasOne(User_Info::class, 'user_id');
-    }
+    // public function userInfo()
+    // {
+    //     return $this->hasOne(User_Info::class, 'user_id');
+    // }
 
     /**
      * Define the relationship between Companies and User models.

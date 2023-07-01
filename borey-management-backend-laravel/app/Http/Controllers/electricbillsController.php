@@ -29,7 +29,7 @@ class electricbillsController extends Controller
         if ($user->role->name === Role::COMPANY) {
             $data = electricbills::latest()->get();
         } else {
-            $data = electricbills::where('user_id', $user->id)->latest()->get();
+            $data = electricbills::where('user_id', $user->user_id)->latest()->get();
         }
         
         return response($data, 200);
@@ -64,14 +64,16 @@ class electricbillsController extends Controller
         }
         
         $user = auth()->user();
-        $username = $user->username;
-        $fullname = $user->fullname;
-        $userInfo = $user->userInfo; 
+        // $username = $user->username;
+        // $fullname = $user->fullname;
+        // $userInfo = $user->userInfo; 
+
+        $userInfo = User_Info::where('user_id', $user->user_id)->first();
 
         $electricbills = electricbills::create([
-            'user_id' => $user->user_id, // Associate the user ID
-            'username' => $username,
-            'fullname' => $fullname,
+            'user_id' => $userInfo->user_id, // Associate the user ID
+            'username' => $userInfo->username,
+            'fullname' => $userInfo->fullname,
             'phonenumber' => $userInfo->phonenumber, // Retrieve the value from the user info
             'house_type' => $userInfo->house_type, // Retrieve the value from the user info
             'house_number' => $userInfo->house_number, // Retrieve the value from the user info

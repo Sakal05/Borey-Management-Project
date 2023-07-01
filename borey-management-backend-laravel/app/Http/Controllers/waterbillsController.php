@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Validator;
-use App\Models\User;
+use App\Models\User_info;
 use App\Http\Resources\WaterbillsResource;
 use App\Models\waterbills;
 use App\Models\Role;
@@ -27,7 +27,7 @@ class waterbillsController extends Controller
         if ($user->role->name === Role::COMPANY) {
             $data = waterbills::latest()->get();
         } else {
-            $data = waterbills::where('user_id', $user->id)->latest()->get();
+            $data = waterbills::where('user_id', $user->user_id)->latest()->get();
         }
 
         return response($data, 200);
@@ -46,7 +46,7 @@ class waterbillsController extends Controller
 
         // Check if the authenticated user is a company
         if ($user->role->name === Role::COMPANY) {
-            return response()->json(['error' => 'Company users are not allowed to create user info records'], 403);
+            return response()->json(['error' => 'Company users are not allowed to create the records'], 403);
         }
         
         $validator = Validator::make($request->all(),[
@@ -61,18 +61,16 @@ class waterbillsController extends Controller
         }
         
         $user = auth()->user();
-        $username = $user->username;
-        $fullname = $user->fullname;
-        $userInfo = $user->userInfo; 
+        $userInfo = User_Info::where('user_id', $user->user_id)->first();
 
         $waterbills = waterbills::create([
-            'user_id' => $user->user_id, // Associate the user ID
-            'username' => $username,
-            'fullname' => $fullname,
+            'user_id' => $userInfo->user_id, // Associate the user ID
+            'username' => $userInfo->username,
+            'fullname' => $userInfo->fullname,
             'phonenumber' => $userInfo->phonenumber, // Retrieve the value from the user info
             'house_type' => $userInfo->house_type, // Retrieve the value from the user info
             'house_number' => $userInfo->house_number, // Retrieve the value from the user info
-            'street_number' => $userInfo->street_number,
+            'street_number' => $userInfo->street_number, // Retrieve the value from the user info
             'category' => $request->category,
             'date_payment' => $request->date_payment,
             'price' => $request->price,
