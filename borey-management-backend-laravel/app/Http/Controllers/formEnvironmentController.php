@@ -34,7 +34,6 @@ class formEnvironmentController extends Controller
         }
 
         return response($data, 200);
-        // return response()->json([FormEnvironmentResource::collection($data), 'Programs fetched.']);
     }
 
     /**
@@ -150,8 +149,8 @@ class formEnvironmentController extends Controller
 
         $formEnvironment->save();
 
-        return response()->json($formEnvironment, 200);
-        // return response()->json(['Form updated successfully.', new FormEnvironmentResource($formEnvironment)]);
+        return response($formEnvironment, 200);
+
     }
 
     /**

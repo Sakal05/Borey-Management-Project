@@ -82,8 +82,8 @@ class electricbillsController extends Controller
             'payment_status' => $request->payment_status,
         ]);
         
-        return response()->json($electricbills, 200);
-        // return response()->json(['Bill created successfully.', new ElectricbillsResource($electricbills)]);
+
+        return response($electricbills, 200);
 
     }
 
@@ -154,8 +154,10 @@ class electricbillsController extends Controller
         // Saving the updated electric bill form
         $electricbills->save();
 
-        return response()->json($electricbills, 200);
-        // return response()->json(['Bill updated successfully.', new ElectricbillsResource($electricbills)]);
+
+        // Returning the response
+        return response($$electricbills, 200);
+
     }
 
 

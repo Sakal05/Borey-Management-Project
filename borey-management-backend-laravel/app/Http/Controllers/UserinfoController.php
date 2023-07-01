@@ -26,13 +26,15 @@ class UserinfoController extends Controller
 
         // Check if the authenticated user is a company
         if ($user->role->name === Role::COMPANY) {
-            $data = User_Info::latest()->get();
+            $data = User_Info::with('user')->latest()->get();
         } else {
             $data = User_Info::where('user_id', $user->id)->latest()->get();
         }
 
+
         return response($data, 200);
         //return response()->json([UserinfoResource::collection($data), 'User info fetched.']);
+
     }
 
     /**
@@ -41,7 +43,8 @@ class UserinfoController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request){
+    public function store(Request $request)
+    {
         $user = auth()->user();
 
         // Check if the user already has a user_info record
@@ -65,7 +68,7 @@ class UserinfoController extends Controller
         ]);
 
         if ($validator->fails()) {
-            return response()->json($validator->errors(), 400);       
+            return response()->json($validator->errors(), 400);
         }
 
         // Check if the user_info record already exists for the user
@@ -78,10 +81,7 @@ class UserinfoController extends Controller
 
         $userinfo = User_info::create([
             'user_id' => $user->user_id, // Associate the user ID
-            'username' => $user->username,
-            'fullname' => $user->fullname,
-            'email' => $user->email,
-            'path' => $request->image,
+            'image_cid' => $request->image,
             'dob' => $request->dob,
             'gender' => $request->gender,
             'phonenumber' => $request->phonenumber,
@@ -89,10 +89,10 @@ class UserinfoController extends Controller
             'house_number' => $request->house_number,
             'street_number' => $request->street_number,
         ]);
+
         
         return response()->json($userinfo, 200);
         // return response()->json(['message' => 'User Info created successfully', 'userinfo' => new UserinfoResource($userinfo)]);
-
     }
 
 
@@ -104,9 +104,9 @@ class UserinfoController extends Controller
      */
     public function show($id)
     {
-        $userinfo = User_info::find($id);
+        $userinfo = User_info::where('user_id', $id)->with('user')->get()->firstOrFail();
         if (is_null($userinfo)) {
-            return response()->json('Data not found', 404); 
+            return response()->json('Data not found', 404);
         }
 
         // Check if the authenticated user is the owner of the form
@@ -115,8 +115,19 @@ class UserinfoController extends Controller
             return response()->json('You are not authorized to view this user info', 403);
         }
 
-        return response()->json($userinfo, 200);
-        // return response()->json([new UserinfoResource($userinfo)]);
+        return response($userinfo, 200);
+    }
+
+    public function logged_user_info()
+    {
+        $user_id = auth()->user()->user_id;
+        $userinfo = User_info::where('user_id', $user_id)->with('user')->get()->firstOrFail();
+        return response([
+            'user' => $userinfo,
+            'message' => 'Logged User Data',
+            'status' => 'success'
+        ], 200);
+
     }
 
     /**
@@ -126,21 +137,22 @@ class UserinfoController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, $id){
+    public function update(Request $request, $id)
+    {
 
-        $validator = Validator::make($request->all(), [
-            'new_image' => 'required',
-            'dob' => 'required',
-            'gender' => 'required|string|max:255',
-            'phonenumber' => 'required|string|max:255',
-            'house_type' => 'required|string|max:255',
-            'house_number' => 'required|string|max:255',
-            'street_number' => 'required|string|max:255',
-        ]);
+        // $validator = Validator::make($request->all(), [
+        //     'image_cid' => 'required',
+        //     'dob' => 'required',
+        //     'gender' => 'required|string|max:255',
+        //     'phonenumber' => 'required|string|max:255',
+        //     'house_type' => 'required|string|max:255',
+        //     'house_number' => 'required|string|max:255',
+        //     'street_number' => 'required|string|max:255',
+        // ]);
 
-        if ($validator->fails()) {
-            return response()->json($validator->errors());       
-        }
+        // if ($validator->fails()) {
+        //     return response()->json($validator->errors());       
+        // }
 
         $user = auth()->user();
         // Retrieve the existing User_info record
@@ -151,12 +163,12 @@ class UserinfoController extends Controller
         }
 
         // Check if the authenticated user is the owner of the user info or a company
-        $user = auth()->user();
+
         if ($user->user_id !== $userinfo->user_id && $user->role->name !== Role::COMPANY) {
             return response()->json('You are not authorized to update this user info', 403);
         }
 
-        $userinfo->path = $request->new_image;
+        $userinfo->image_cid = $request->image_cid;
         $userinfo->dob = $request->dob;
         $userinfo->gender = $request->gender;
         $userinfo->phonenumber = $request->phonenumber;
@@ -165,8 +177,30 @@ class UserinfoController extends Controller
         $userinfo->street_number = $request->street_number;
         $userinfo->save();
 
-        return response()->json($userinfo, 200);
-        // return response()->json(['message' => 'User info updated successfully.', 'userinfo' => new UserinfoResource($userinfo)]);
+
+        // Update the user record
+        $userTable = User::where('user_id', $userinfo->user_id)->first();
+        if (!$userTable) {
+            return response()->json('User not found', 404);
+        }
+
+        // Update the user data
+        if ($request->has('user.fullname') && $request->has('user.company_id')) {
+            $userTable->fullname = $request->input('user.fullname');
+            $userTable->company_id = $request->input('user.company_id');
+            $userTable->save();
+        } else if ($request->has('user.company_id') !== null) {
+            $userTable->company_id = $request->input('user.company_id');
+            $userTable->save();
+        } else if ($request->has('user.fullname') !== null ){
+            $userTable->fullname = $request->input('user.fullname');
+            $userTable->save();
+        }
+
+        $userinfo = User_info::where('user_id', $userinfo->user_id)->with('user')->get()->firstOrFail();
+
+        return response($userinfo, 200);
+
     }
 
 
@@ -211,21 +245,20 @@ class UserinfoController extends Controller
 
         // Add your search criteria based on your needs
         $query->where('user_id', auth()->user()->user_id)
-        ->where(function ($innerQuery) use ($keyword) {
-            $innerQuery->where('dob', 'like', "%$keyword%")
-                ->orWhere('gender', 'like', "%$keyword%")
-                ->orWhere('phonenumber', 'like', "%$keyword%")
-                ->orWhere('house_type', 'like', "%$keyword%")
-                ->orWhere('house_number', 'like', "%$keyword%")
-                ->orWhere('street_number', 'like', "%$keyword%");
-        });
+            ->where(function ($innerQuery) use ($keyword) {
+                $innerQuery->where('dob', 'like', "%$keyword%")
+                    ->orWhere('gender', 'like', "%$keyword%")
+                    ->orWhere('phonenumber', 'like', "%$keyword%")
+                    ->orWhere('house_type', 'like', "%$keyword%")
+                    ->orWhere('house_number', 'like', "%$keyword%")
+                    ->orWhere('street_number', 'like', "%$keyword%");
+            });
         $results = $query->get();
 
         if ($results->isEmpty()) {
             return response()->json('No data found.', 404);
         }
-        
+
         return response()->json($results);
     }
-
 }
