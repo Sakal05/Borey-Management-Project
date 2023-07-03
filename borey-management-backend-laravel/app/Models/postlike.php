@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class postlike extends Model
 {
     protected $fillable = [
-        'company_id',
+        'user_id',
         'post_id',
     ];
 

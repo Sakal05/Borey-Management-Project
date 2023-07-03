@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class postcomment extends Model
 {
     protected $fillable = [
-        'company_id',
+        'user_id',
         'post_id',
         'content',
     ];
