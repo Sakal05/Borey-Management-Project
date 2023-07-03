@@ -91,7 +91,7 @@ const EnvironmentalFormField = () => {
     category: '',
     problem_description: '',
     image: '',
-    general_status: 'pending'
+    environment_status: 'pending'
   })
 
   const pinFileToIPFS = async file => {
@@ -196,7 +196,7 @@ const EnvironmentalFormField = () => {
       try {
         console.log('Image Field: ', formData.image)
         const res = await axios({
-          url: 'http://localhost:8000/api/form_generals',
+          url: 'http://localhost:8000/api/form_environments',
           method: 'POST',
           data: formData,
           headers: {

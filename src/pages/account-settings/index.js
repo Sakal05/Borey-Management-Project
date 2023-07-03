@@ -1,5 +1,5 @@
 // ** React Imports
-import { useState } from 'react'
+import { useState, useEffect, useContext } from 'react'
 
 // ** MUI Imports
 import Box from '@mui/material/Box'
@@ -19,6 +19,13 @@ import InformationOutline from 'mdi-material-ui/InformationOutline'
 import TabInfo from 'src/views/account-settings/TabInfo'
 import TabAccount from 'src/views/account-settings/TabAccount'
 import TabSecurity from 'src/views/account-settings/TabSecurity'
+import { SettingsContext } from 'src/@core/context/settingsContext'
+import axios from 'axios'
+import { toast } from 'react-toastify'
+import 'react-toastify/dist/ReactToastify.css'
+import moment from 'moment'
+import CircularProgress from '@mui/material/CircularProgress'
+import Typography from '@mui/material/Typography'
 
 // ** Third Party Styles Imports
 import 'react-datepicker/dist/react-datepicker.css'
@@ -49,8 +56,58 @@ const AccountSettings = () => {
     setValue(newValue)
   }
 
+  const {
+    contextTokenValue: { token }
+  } = useContext(SettingsContext)
+
+  const [currentInfo, setCurrentInfo] = useState(null)
+
+  
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const res = await axios({
+          method: 'GET',
+          // baseURL: API_URL,
+          url: 'http://127.0.0.1:8000/api/loggedUserInfo',
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        })
+        console.log(res.data.user)
+        setCurrentInfo(res.data.user)
+      } catch (err) {
+        console.log(err)
+      }
+    }
+    if (token !== null) {
+      fetchUser()
+    }
+  }, [token])
+
   return (
     <Card>
+      {currentInfo === null ? (
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(255, 255, 255, 0.8)',
+            zIndex: 9999
+          }}
+        >
+          <CircularProgress />
+          <Typography variant='body1' style={{ marginLeft: '1rem' }}>
+            Please wait, loading user info...
+          </Typography>
+        </div>
+      ) : (
       <TabContext value={value}>
         <TabList
           onChange={handleChange}
@@ -87,15 +144,16 @@ const AccountSettings = () => {
         </TabList>
 
         <TabPanel sx={{ p: 0 }} value='account'>
-          <TabAccount />
+          <TabAccount info={currentInfo}/>
         </TabPanel>
         <TabPanel sx={{ p: 0 }} value='security'>
           <TabSecurity />
         </TabPanel>
         <TabPanel sx={{ p: 0 }} value='info'>
-          <TabInfo />
+          <TabInfo  info={currentInfo}/>
         </TabPanel>
       </TabContext>
+      )}
     </Card>
   )
 }

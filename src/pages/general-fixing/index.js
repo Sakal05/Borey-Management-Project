@@ -10,17 +10,8 @@ import TabContext from '@mui/lab/TabContext'
 import { styled } from '@mui/material/styles'
 import MuiTab from '@mui/material/Tab'
 
-import { AccountSettings } from 'mdi-material-ui'
+import { AccountOutline } from 'mdi-material-ui'
 import { AutoFix } from 'mdi-material-ui'
-// ** Icons Imports
-import AccountOutline from 'mdi-material-ui/AccountOutline'
-import LockOpenOutline from 'mdi-material-ui/LockOpenOutline'
-import InformationOutline from 'mdi-material-ui/InformationOutline'
-
-// ** Demo Tabs Imports
-import TabInfo from 'src/views/account-settings/TabInfo'
-import TabAccount from 'src/views/account-settings/TabAccount'
-import TabSecurity from 'src/views/account-settings/TabSecurity'
 import FormField from 'src/views/form-field'
 
 // ** Third Party Styles Imports
@@ -51,22 +42,20 @@ const GeneralFixing = () => {
     setValue(newValue)
   }
 
-  const [userStatus, setUserStatus] = useState('For Me');
-
   return (
     <Card>
       <TabContext value={value}>
-        <TabList
-          onChange={handleChange}
+      <TabList
           aria-label='account-settings tabs'
           sx={{ borderBottom: theme => `1px solid ${theme.palette.divider}` }}
+          onChange={handleChange}
         >
           <Tab
             value='account'
             label={
               <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                <AutoFix />
-                <TabName>General Fixing Form</TabName>
+                <AccountOutline />
+                <TabName>Form</TabName>
               </Box>
             }
           />

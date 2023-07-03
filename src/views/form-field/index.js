@@ -50,13 +50,13 @@ const FormField = () => {
   const [forMeStatus, setForMeStatus] = useState(true)
   const [imagePath, setImagePath] = useState(null)
   const [userInfo, setUserInfo] = useState({})
+  const [uploadingImage, setUploadingImage] = useState('')
 
   const router = useRouter()
 
   const {
     contextTokenValue: { token }
   } = useContext(SettingsContext)
-  const [uploadingImage, setUploadingImage] = useState('')
 
   const [formData, setFormData] = useState({
     fullname: userInfo.fullname,
@@ -163,17 +163,6 @@ const FormField = () => {
       ...prevState,
       [fieldName]: fieldValue
     }))
-
-    if (forMeStatus) {
-      console.log('isForMe')
-
-      setFormData(prevState => ({
-        ...prevState,
-        fullname: 'Sakal Samnang',
-        email: 'sakal05@gmail.com',
-        general_status: 'pending'
-      }))
-    }
   }
 
   const submitForm = async e => {
