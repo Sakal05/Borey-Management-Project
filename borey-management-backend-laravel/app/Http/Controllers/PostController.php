@@ -9,6 +9,9 @@ use Illuminate\Http\Request;
 use Validator;
 use App\Models\Post;
 use App\Models\Role;
+use App\Models\postlike;
+use App\Models\postcomment;
+use App\Models\postshare;
 
 class PostController extends Controller
 {
@@ -214,6 +217,105 @@ class PostController extends Controller
         }
 
         return response()->json($results);
+    }
+
+    public function storeLike(Request $request)
+    {
+        $user = auth()->user();
+
+        $validator = Validator::make($request->all(), [
+            'post_id' => 'required|exists:posts,id',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json($validator->errors());
+        }
+
+        // Check if the user has already liked the post
+        $existingLike = postlike::where('user_id', $user->user_id)->where('post_id', $request->post_id)->first();
+
+        if ($existingLike) {
+            return response()->json('You have already liked this post', 400);
+        }
+
+        // Create a new like record
+        $like = postlike::create([
+            'user_id' => $user->user_id,
+            'post_id' => $request->post_id,
+        ]);
+
+        return response()->json($like, 200);
+    }
+    
+    public function destroyLike(Request $request)
+    {
+        $user = auth()->user();
+
+        $validator = Validator::make($request->all(), [
+            'post_id' => 'required|exists:posts,id',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json($validator->errors());
+        }
+
+        // Find the like record associated with the user and post
+        $like = postlike::where('user_id', $user->user_id)->where('post_id', $request->post_id)->first();
+
+        if (!$like) {
+            return response()->json('You have not liked this post', 400);
+        }
+
+        // Delete the like record
+        $like->delete();
+
+        return response()->json('Like removed successfully', 200);
+    }
+
+
+    public function storeComment(Request $request)
+    {
+        $user = auth()->user();
+
+        $validator = Validator::make($request->all(), [
+            'post_id' => 'required|exists:posts,id',
+            'content' => 'required',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json($validator->errors());
+        }
+
+        // Create a new comment record
+        $comment = postcomment::create([
+            'user_id' => $user->user_id,
+            'post_id' => $request->post_id,
+            'content' => $request->content,
+        ]);
+
+        return response()->json($comment, 200);
+    }
+
+
+    public function storeShare(Request $request)
+    {
+        $user = auth()->user();
+
+        $validator = Validator::make($request->all(), [
+            'post_id' => 'required|exists:posts,id',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json($validator->errors());
+        }
+
+        // Create a new share record
+        $share = postshare::create([
+            'user_id' => $user->user_id,
+            'post_id' => $request->post_id,
+        ]);
+
+        return response()->json($share, 200);
     }
 
 

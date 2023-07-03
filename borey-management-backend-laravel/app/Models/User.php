@@ -118,4 +118,33 @@ class User extends Authenticatable
         return $this->belongsTo(Role::class);
     }
     
+    /**
+     * Get the likes made by the user.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function likes()
+    {
+        return $this->hasMany(postlike::class, 'user_id');
+    }
+
+    /**
+     * Get the comments posted by the user.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function comments()
+    {
+        return $this->hasMany(postcomment::class, 'user_id');
+    }
+
+    /**
+     * Get the shares made by the user.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function shares()
+    {
+        return $this->hasMany(postshare::class, 'user_id');
+    }
 }
