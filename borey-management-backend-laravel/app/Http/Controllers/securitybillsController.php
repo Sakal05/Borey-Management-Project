@@ -11,6 +11,8 @@ use App\Models\User_info;
 use App\Http\Resources\SecuritybillsResource;
 use App\Models\securitybills;
 use App\Models\Role;
+use App\Models\User;
+
 
 
 class securitybillsController extends Controller
@@ -47,15 +49,16 @@ class securitybillsController extends Controller
         $user = auth()->user();
 
         // Check if the authenticated user is a company
-        if ($user->role->name === Role::COMPANY) {
-            return response()->json(['error' => 'Company users are not allowed to create user info records'], 403);
+        if ($user->role->name !== Role::COMPANY) {
+            return response()->json(['error' => 'Only company can create the bill invoice'], 403);
         }
 
         $validator = Validator::make($request->all(),[
+            'user_id'=> 'required',
             'category' => 'required',
-            'date_payment' => 'required',
             'price' => 'required',
             'payment_status' => 'required',
+            'payment_deadline' => 'required',
         ]);
 
         if($validator->fails()){
@@ -63,18 +66,25 @@ class securitybillsController extends Controller
         }
         
         $user = auth()->user();
-        $userInfo = User_Info::where('user_id', $user->user_id)->first();
+        $userInfo = User_Info::where('user_id', $request->user_id)->first();
+        $userBaseInfo = User::where('user_id', $request->user_id)->first();
+
+        if ($userBaseInfo->fullname === null) {
+            return response()->json(['error' => 'User not found'], 405);
+        }
+
+        if ($userInfo->house_number === null || $userInfo->street_number === null || $userInfo->phonenumber === null) {
+            return response()->json(['error' => 'User does not have enough information'], 403);
+        }
 
         $securitybills = securitybills::create([
             'user_id' => $userInfo->user_id, // Associate the user ID
-            'username' => $userInfo->username,
-            'fullname' => $userInfo->fullname,
+            'fullname' => $userBaseInfo->fullname,
             'phonenumber' => $userInfo->phonenumber, // Retrieve the value from the user info
-            'house_type' => $userInfo->house_type, // Retrieve the value from the user info
             'house_number' => $userInfo->house_number, // Retrieve the value from the user info
             'street_number' => $userInfo->street_number, // Retrieve the value from the user info
+            'payment_deadline' => $request->payment_deadline,
             'category' => $request->category,
-            'date_payment' => $request->date_payment,
             'price' => $request->price,
             'payment_status' => $request->payment_status,
         ]);
