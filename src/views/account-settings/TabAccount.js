@@ -1,5 +1,5 @@
 // ** React Imports
-import { useState } from 'react'
+import { useState, useEffect, useContext, useRef } from 'react'
 
 // ** MUI Imports
 import Box from '@mui/material/Box'
@@ -17,6 +17,12 @@ import IconButton from '@mui/material/IconButton'
 import CardContent from '@mui/material/CardContent'
 import FormControl from '@mui/material/FormControl'
 import Button from '@mui/material/Button'
+import { SettingsContext } from 'src/@core/context/settingsContext'
+import axios from 'axios'
+import { toast } from 'react-toastify'
+import 'react-toastify/dist/ReactToastify.css'
+import CircularProgress from '@mui/material/CircularProgress'
+const JWT = process.env.JWT
 
 // ** Icons Imports
 import Close from 'mdi-material-ui/Close'
@@ -45,115 +51,302 @@ const ResetButtonStyled = styled(Button)(({ theme }) => ({
   }
 }))
 
-const TabAccount = () => {
+const TabAccount = props => {
+  const { info } = props
+  console.log('info para', info)
+
+  // console.log(info.user)
   // ** State
   const [openAlert, setOpenAlert] = useState(true)
   const [imgSrc, setImgSrc] = useState('/images/avatars/1.png')
+  const imageInputRef = useRef(null)
+  const [imagePath, setImagePath] = useState(null)
+  const [uploadingImage, setUploadingImage] = useState('')
+  const [imageSrc, setImageSrc] = useState(null)
+  const [userInfoId, setUserInfoId] = useState(null)
+  const [fetchForm, setFetchForm] = useState(null)
+  const {
+    contextTokenValue: { token }
+  } = useContext(SettingsContext)
 
-  const onChange = file => {
-    const reader = new FileReader()
-    const { files } = file.target
-    if (files && files.length !== 0) {
-      reader.onload = () => setImgSrc(reader.result)
-      reader.readAsDataURL(files[0])
+  // const [currentUser, setCurrentUser] = useState({
+  //   username: '',
+  //   fullname: '',
+  //   role_id: '',
+  //   email: '',
+  //   company_id: ''
+  // })
+
+  const [currentUser, setCurrentUser] = useState(null)
+  const [updatedForm, setUpdatedForm] = useState({
+    fullname: '',
+    company_id: '',
+    image_cid: ''
+  })
+
+  /* 
+  'image_cid' => 'required',
+            'dob' => 'required',
+            'gender' => 'required|string|max:255',
+            'phonenumber' => 'required|string|max:255',
+            'house_type' => 'required|string|max:255',
+            'house_number' => 'required|string|max:255',
+            'street_number' => 'required|string|max:255',
+  */
+
+  const pinFileToIPFS = async file => {
+    // console.log(src)
+    const form = new FormData()
+
+    form.append('file', file)
+
+    const metadata = JSON.stringify({
+      name: file.name
+    })
+
+    form.append('pinataMetadata', metadata)
+
+    const options = JSON.stringify({
+      cidVersion: 0
+    })
+    form.append('pinataOptions', options)
+
+    try {
+      setUploadingImage('true')
+      const res = await axios.post('https://api.pinata.cloud/pinning/pinFileToIPFS', form, {
+        maxBodyLength: 'Infinity',
+        headers: {
+          'Content-Type': `multipart/form-data; boundary=${form._boundary}`,
+          Authorization: `Bearer ${JWT}`
+        }
+      })
+      console.log(res.data)
+      const image_cid = res.data.IpfsHash
+      console.log(image_cid)
+      // setImage_cid(image_cid);
+      setImagePath(image_cid)
+      setUploadingImage('false')
+      setCurrentUser(prevState => ({
+        ...prevState,
+        image_cid: image_cid
+      }))
+    } catch (err) {
+      toast.error('Not able to upload file')
     }
   }
 
+  const fetchUploadedImage = async cid => {
+    // const ipfsGateway = 'https://gateway.ipfs.io/ipfs/'
+    if (cid !== null) {
+      try {
+        const response = await fetch(`https://gateway.ipfs.io/ipfs/${cid}`)
+        if (!response.ok) {
+          throw new Error('Failed to fetch image from IPFS')
+        }
+        const blob = await response.blob()
+        const imageURL = URL.createObjectURL(blob)
+        console.log(imageURL)
+        setImageSrc(imageURL)
+        // Use the fetched blob as needed (e.g., display it in an image element)
+        // Example: document.getElementById('imageElement').src = URL.createObjectURL(blob);
+      } catch (error) {
+        console.error(error)
+        // Handle error
+        return null
+      }
+    } else {
+      console.log('No image')
+    }
+  }
+
+  const onChangeFile = async e => {
+    const file = e.target.files[0]
+    console.log(file)
+
+    await pinFileToIPFS(file)
+  }
+
+  const handleInput = e => {
+    const fieldName = e.target.name
+    const fieldValue = e.target.value
+
+    if (fieldName === 'fullname' || 'company_id') {
+      setCurrentUser(prevState => ({
+        ...prevState,
+        user: {
+          ...prevState.user,
+          [fieldName]: fieldValue
+        },
+        image_cid: imagePath
+      }))
+    } else if (e.target.name === 'company_id') {
+      toast.error('Field cannot be changed')
+    }
+  }
+
+  const handleSumbit = async e => {
+    console.log(currentUser)
+    e.preventDefault()
+    try {
+      const res = await axios({
+        url: `http://localhost:8000/api/user_infos/${currentUser.id}`,
+        method: 'POST',
+        data: currentUser,
+        headers: {
+          'Content-Type': 'multipart/form-data',
+          Authorization: `Bearer ${token}`
+        }
+      })
+      toast.success("Change saved");
+      console.log(res)
+    } catch (err) {
+      console.error(err)
+    }
+  }
+
+  useEffect(() => {
+    
+    setCurrentUser(info);
+    setImagePath(info.image_cid);
+    if (token !== null) {
+      // fetchUser()
+    }
+  }, [token])
+
+  useEffect(() => {
+    fetchUploadedImage(imagePath);
+  }, [imagePath])
+
   return (
     <CardContent>
-      <form>
-        <Grid container spacing={7}>
-          <Grid item xs={12} sx={{ marginTop: 4.8, marginBottom: 3 }}>
-            <Box sx={{ display: 'flex', alignItems: 'center' }}>
-              <ImgStyled src={imgSrc} alt='Profile Pic' />
-              <Box>
-                <ButtonStyled component='label' variant='contained' htmlFor='account-settings-upload-image'>
-                  Upload New Photo
-                  <input
-                    hidden
-                    type='file'
-                    onChange={onChange}
-                    accept='image/png, image/jpeg'
-                    id='account-settings-upload-image'
-                  />
-                </ButtonStyled>
-                <ResetButtonStyled color='error' variant='outlined' onClick={() => setImgSrc('/images/avatars/1.png')}>
-                  Reset
-                </ResetButtonStyled>
-                <Typography variant='body2' sx={{ marginTop: 5 }}>
-                  Allowed PNG or JPEG. Max size of 800K.
-                </Typography>
+      {currentUser === null ? (
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(255, 255, 255, 0.8)',
+            zIndex: 9999
+          }}
+        >
+          <CircularProgress />
+          <Typography variant='body1' style={{ marginLeft: '1rem' }}>
+            Please wait, loading user info...
+          </Typography>
+        </div>
+      ) : (
+        <form onSubmit={handleSumbit}>
+          <Grid container spacing={7}>
+            <Grid item xs={12} sx={{ marginTop: 4.8, marginBottom: 3 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                <ImgStyled src={imageSrc === null ? imgSrc : imageSrc} alt='Profile Pic' />
+                <Box>
+                  <ButtonStyled component='label' variant='contained' htmlFor='account-settings-upload-image'>
+                    Upload New Photo
+                    <input
+                      hidden
+                      type='file'
+                      onChange={onChangeFile}
+                      accept='image/png, image/jpeg'
+                      id='account-settings-upload-image'
+                    />
+                  </ButtonStyled>
+                  <ResetButtonStyled
+                    color='error'
+                    variant='outlined'
+                    onClick={() => setImgSrc('/images/avatars/1.png')}
+                  >
+                    Reset
+                  </ResetButtonStyled>
+                  <Typography variant='body2' sx={{ marginTop: 5 }}>
+                    Allowed PNG or JPEG. Max size of 800K.
+                  </Typography>
+                </Box>
               </Box>
-            </Box>
-          </Grid>
-
-          <Grid item xs={12} sm={6}>
-            <TextField fullWidth label='Username' placeholder='Sakal' defaultValue='Sakal' />
-          </Grid>
-          <Grid item xs={12} sm={6}>
-            <TextField fullWidth label='Name' placeholder='Sakal Samnang' defaultValue='Sakal Samnang' />
-          </Grid>
-          <Grid item xs={12} sm={6}>
-            <TextField
-              fullWidth
-              type='email'
-              label='Email'
-              placeholder='Sakal@example.com'
-              defaultValue='Sakal@example.com'
-            />
-          </Grid>
-          <Grid item xs={12} sm={6}>
-            <FormControl fullWidth>
-              <InputLabel>Role</InputLabel>
-              <Select label='Role' defaultValue='houseOwner'>
-                <MenuItem value='admin'>Admin</MenuItem>
-                <MenuItem value='houseOwner'>House Owner</MenuItem>
-              </Select>
-            </FormControl>
-          </Grid>
-          <Grid item xs={12} sm={6}>
-            <FormControl fullWidth>
-              <InputLabel>Status</InputLabel>
-              <Select label='Status' defaultValue='active'>
-                <MenuItem value='active'>Active</MenuItem>
-                <MenuItem value='inactive'>Inactive</MenuItem>
-                <MenuItem value='pending'>Pending</MenuItem>
-              </Select>
-            </FormControl>
-          </Grid>
-          <Grid item xs={12} sm={6}>
-            <TextField fullWidth label='Company_ID' placeholder='ABC123' defaultValue='ABC123' />
-          </Grid>
-
-          {openAlert ? (
-            <Grid item xs={12} sx={{ mb: 3 }}>
-              <Alert
-                severity='warning'
-                sx={{ '& a': { fontWeight: 400 } }}
-                action={
-                  <IconButton size='small' color='inherit' aria-label='close' onClick={() => setOpenAlert(false)}>
-                    <Close fontSize='inherit' />
-                  </IconButton>
-                }
-              >
-                <AlertTitle>Your email is not confirmed. Please check your inbox.</AlertTitle>
-                <Link href='/' onClick={e => e.preventDefault()}>
-                  Resend Confirmation
-                </Link>
-              </Alert>
             </Grid>
-          ) : null}
 
-          <Grid item xs={12}>
-            <Button variant='contained' sx={{ marginRight: 3.5 }}>
-              Save Changes
-            </Button>
-            <Button type='reset' variant='outlined' color='secondary'>
-              Reset
-            </Button>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                label={
+                  <Box>
+                    <Typography variant='body5'>Username</Typography>
+                    <Typography variant='body5' color='red'>
+                      {' (Cannot be changed)'}
+                    </Typography>
+                  </Box>
+                }
+                value={currentUser.user.username}
+                InputProps={{
+                  readOnly: true
+                }}
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                label='Name'
+                name='fullname'
+                value={currentUser.user.fullname}
+                onChange={handleInput}
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                type='email'
+                label={
+                  <Box>
+                    <Typography variant='body5'>Email</Typography>
+                    <Typography variant='body5' color='red'>
+                      {' (Cannot be changed)'}
+                    </Typography>
+                  </Box>
+                }
+                value={currentUser.user.email}
+                InputProps={{
+                  readOnly: true
+                }}
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                label={
+                  <Box>
+                    <Typography variant='body5'>Role</Typography>
+                    <Typography variant='body5' color='red'>
+                      {' (Cannot be changed)'}
+                    </Typography>
+                  </Box>
+                }
+                value={currentUser.user.role_id === 3 ? 'House Owner' : 'Unknown'}
+              />
+            </Grid>
+            <Grid item xs={12} sm={12}>
+              <FormControl fullWidth>
+                <InputLabel>Company</InputLabel>
+                <Select label='category' name='company_id' value={currentUser.user.company_id} onChange={handleInput}>
+                  <MenuItem value='0001'>PengHout Premium</MenuItem>
+                  <MenuItem value='0002'>Borey Anh</MenuItem>
+                  <MenuItem value='0003'>Borey ah na anh mix dg</MenuItem>
+                </Select>
+              </FormControl>
+            </Grid>
+
+            <Grid item xs={12}>
+              <Button variant='contained' sx={{ marginRight: 3.5 }} type='submit'>
+                Save Changes
+              </Button>
+            </Grid>
           </Grid>
-        </Grid>
-      </form>
+        </form>
+      )}
     </CardContent>
   )
 }

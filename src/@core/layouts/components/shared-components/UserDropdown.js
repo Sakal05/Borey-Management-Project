@@ -1,5 +1,5 @@
 // ** React Imports
-import { useState, Fragment, useContext } from 'react'
+import { useState, Fragment, useContext, useEffect } from 'react'
 
 // ** Next Import
 import { useRouter } from 'next/router'
@@ -23,7 +23,6 @@ import AccountOutline from 'mdi-material-ui/AccountOutline'
 import MessageOutline from 'mdi-material-ui/MessageOutline'
 import HelpCircleOutline from 'mdi-material-ui/HelpCircleOutline'
 import { SettingsContext } from 'src/@core/context/settingsContext'
-import cookie from 'cookie';
 import axios from 'axios'
 
 // ** Styled Components
@@ -36,7 +35,10 @@ const BadgeContentSpan = styled('span')(({ theme }) => ({
 }))
 
 const UserDropdown = () => {
-  const API_URL = 'http://localhost:8000/api/'
+  const [currentUser, setCurrentUser] = useState({
+    fullname: '',
+    role_id: ''
+  })
 
   const {
     contextTokenValue: { token, clearAuthToken }
@@ -44,6 +46,7 @@ const UserDropdown = () => {
 
   // ** States
   const [anchorEl, setAnchorEl] = useState(null)
+  const [image_cid, setImage_cid] = useState(null)
 
   // ** Hooks
   const router = useRouter()
@@ -59,6 +62,30 @@ const UserDropdown = () => {
     setAnchorEl(null)
   }
 
+  const fetchUploadedImage = async cid => {
+    // const ipfsGateway = 'https://gateway.ipfs.io/ipfs/'
+    if (cid !== null) {
+      try {
+        const response = await fetch(`https://gateway.ipfs.io/ipfs/${cid}`)
+        if (!response.ok) {
+          throw new Error('Failed to fetch image from IPFS')
+        }
+        const blob = await response.blob()
+        const imageURL = URL.createObjectURL(blob)
+        console.log(imageURL)
+        setImage_cid(imageURL)
+        // Use the fetched blob as needed (e.g., display it in an image element)
+        // Example: document.getElementById('imageElement').src = URL.createObjectURL(blob);
+      } catch (error) {
+        console.error(error)
+        // Handle error
+        return null
+      }
+    } else {
+      console.log('No image')
+    }
+  }
+
   const handleLogOut = async () => {
     console.log('Token in log out page: ', token);
 
@@ -67,16 +94,6 @@ const UserDropdown = () => {
         method: 'POST',
         // baseURL: API_URL,
         url: 'http://localhost:8000/api/logout',
-        // data: {
-        //     user_id: "0001", // Associate the user ID
-        //     username: "sadfadf",
-        //     fullname: "sasaasdf",
-        //     email: "samn@gmail.com",
-        //     category: "asdfasd",
-        //     problem_description: "asdfsdfsdf",
-        //     image: "fasdfsa.png", // Save the image path in the database
-        //     environment_status: "pending",
-        // },
         headers: {
           Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -92,6 +109,35 @@ const UserDropdown = () => {
       console.log(err)
     }
   }
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      if (token !== null) {
+        try {
+          const res = await axios({
+            method: 'GET',
+            // baseURL: API_URL,
+            url: 'http://127.0.0.1:8000/api/loggedUserInfo',
+            headers: {
+              Authorization: `Bearer ${token}`
+            }
+          })
+          console.log(res)
+          setCurrentUser(res.data.user.user)
+          setImage_cid(res.data.user.image_cid)
+        } catch (err) {
+          console.log(err)
+        }
+      }
+    }
+    if (token !== null) {
+      fetchUser();
+    }
+  }, [token])
+
+  useEffect(async () => {
+    await fetchUploadedImage(image_cid)
+  }, [image_cid])
 
   const styles = {
     py: 2,
@@ -120,7 +166,7 @@ const UserDropdown = () => {
           alt='John Doe'
           onClick={handleDropdownOpen}
           sx={{ width: 40, height: 40 }}
-          src='/images/avatars/1.png'
+          src={image_cid === null ? '/images/avatars/1.png' : image_cid}
         />
       </Badge>
       <Menu
@@ -138,12 +184,12 @@ const UserDropdown = () => {
               badgeContent={<BadgeContentSpan />}
               anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
             >
-              <Avatar alt='John Doe' src='/images/avatars/1.png' sx={{ width: '2.5rem', height: '2.5rem' }} />
+              <Avatar alt='Err Anh' src={image_cid === null ? '/images/avatars/1.png' : image_cid} sx={{ width: '2.5rem', height: '2.5rem' }} />
             </Badge>
             <Box sx={{ display: 'flex', marginLeft: 3, alignItems: 'flex-start', flexDirection: 'column' }}>
-              <Typography sx={{ fontWeight: 600 }}>John Doe</Typography>
+              <Typography sx={{ fontWeight: 600 }}>{currentUser.fullname}</Typography>
               <Typography variant='body2' sx={{ fontSize: '0.8rem', color: 'text.disabled' }}>
-                Admin
+              {currentUser.role_id === 3 ? 'USER' : "UNKNOWN"}
               </Typography>
             </Box>
           </Box>
@@ -155,38 +201,12 @@ const UserDropdown = () => {
             Profile
           </Box>
         </MenuItem>
-        <MenuItem sx={{ p: 0 }} onClick={() => handleDropdownClose()}>
-          <Box sx={styles}>
-            <EmailOutline sx={{ marginRight: 2 }} />
-            Inbox
-          </Box>
-        </MenuItem>
-        <MenuItem sx={{ p: 0 }} onClick={() => handleDropdownClose()}>
-          <Box sx={styles}>
-            <MessageOutline sx={{ marginRight: 2 }} />
-            Chat
-          </Box>
-        </MenuItem>
-        <Divider />
-        <MenuItem sx={{ p: 0 }} onClick={() => handleDropdownClose()}>
+        {/* <MenuItem sx={{ p: 0 }} onClick={() => handleDropdownClose()}>
           <Box sx={styles}>
             <CogOutline sx={{ marginRight: 2 }} />
             Settings
           </Box>
-        </MenuItem>
-        <MenuItem sx={{ p: 0 }} onClick={() => handleDropdownClose()}>
-          <Box sx={styles}>
-            <CurrencyUsd sx={{ marginRight: 2 }} />
-            Pricing
-          </Box>
-        </MenuItem>
-        <MenuItem sx={{ p: 0 }} onClick={() => handleDropdownClose()}>
-          <Box sx={styles}>
-            <HelpCircleOutline sx={{ marginRight: 2 }} />
-            FAQ
-          </Box>
-        </MenuItem>
-        <Divider />
+        </MenuItem> */}
         <MenuItem sx={{ py: 2 }} onClick={handleLogOut}>
           <LogoutVariant sx={{ marginRight: 2, fontSize: '1.375rem', color: 'text.secondary' }} />
           Logout
