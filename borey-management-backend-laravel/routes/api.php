@@ -63,9 +63,11 @@ Route::middleware(['auth:sanctum'])->group(function(){
     Route::resource('posts', PostController::class);
     Route::post('posts/{post}', [PostController::class, 'update'])->name('posts.update');
     Route::post('postlike', [PostController::class, 'storeLike'])->name('posts.like');
-    Route::delete('postdelete', [PostController::class, 'destroyLike'])->name('posts.likedestroy');
+    Route::delete('postlike', [PostController::class, 'destroyLike'])->name('posts.likedestroy');
     Route::post('postcomment', [PostController::class, 'storeComment'])->name('posts.comment');
+    Route::delete('postcomment', [PostController::class, 'deleteComment']);
     Route::post('postshare', [PostController::class, 'storeShare'])->name('posts.share');
+    Route::delete('postshare', [PostController::class, 'deleteShare']);
 
     // Companies Routes
     Route::post('/company/logout', [CompaniesController::class, 'logout']);

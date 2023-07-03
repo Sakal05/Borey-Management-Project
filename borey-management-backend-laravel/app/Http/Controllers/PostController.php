@@ -296,6 +296,28 @@ class PostController extends Controller
         return response()->json($comment, 200);
     }
 
+    public function deleteComment(Request $request)
+    {
+        $user = auth()->user();
+
+        $validator = Validator::make($request->all(), [
+            'comment_id' => 'required|exists:postcomments,id',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json($validator->errors());
+        }
+
+        $comment = postcomment::find($request->comment_id);
+
+        // Check if the comment exists and if the user is the owner of the comment or the owner of the post
+        if ($comment && ($user->user_id === $comment->user_id || $user->user_id === $comment->post->user_id)) {
+            $comment->delete();
+            return response()->json('Comment deleted successfully', 200);
+        }
+
+        return response()->json('Unauthorized to delete the comment', 401);
+    }
 
     public function storeShare(Request $request)
     {
@@ -317,7 +339,28 @@ class PostController extends Controller
 
         return response()->json($share, 200);
     }
+    public function deleteShare(Request $request)
+    {
+        $user = auth()->user();
 
+        $validator = Validator::make($request->all(), [
+            'share_id' => 'required|exists:postshares,id',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json($validator->errors());
+        }
+
+        $share = postshare::find($request->share_id);
+
+        // Check if the share exists and if the user is the owner of the share
+        if ($share && ($user->user_id === $share->user_id)) {
+            $share->delete();
+            return response()->json('Share deleted successfully', 200);
+        }
+
+        return response()->json('Unauthorized to delete the share', 401);
+}
 
 
 }
