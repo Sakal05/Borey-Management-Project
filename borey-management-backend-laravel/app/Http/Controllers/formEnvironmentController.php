@@ -23,7 +23,7 @@ class formEnvironmentController extends Controller
      */
     public function index()
     {
-            
+
         $user = auth()->user();
 
         // Check if the authenticated user is a company
@@ -51,17 +51,17 @@ class formEnvironmentController extends Controller
             return response()->json(['error' => 'Company users are not allowed to create the records'], 403);
         }
 
-        $validator = Validator::make($request->all(),[
+        $validator = Validator::make($request->all(), [
             'category' => 'required|string|max:255',
             'problem_description' => 'required',
             'image' => 'required', // Restrict the file types and size
             'environment_status' => 'required',
         ]);
 
-        if($validator->fails()){
-            return response()->json($validator->errors());       
+        if ($validator->fails()) {
+            return response()->json($validator->errors());
         }
-        
+
         $user = auth()->user();
         $username = $user->username;
         $fullname = $user->fullname;
@@ -77,7 +77,7 @@ class formEnvironmentController extends Controller
             'path' => $request->image, // Save the image path in the database
             'environment_status' => $request->environment_status,
         ]);
-        
+
         return response()->json($formEnvironment, 200);
         // return response()->json(['Form created successfully.', new FormEnvironmentResource($formEnvironment)]);
 
@@ -93,7 +93,7 @@ class formEnvironmentController extends Controller
     {
         $formEnvironment = formEnvironment::find($id);
         if (is_null($formEnvironment)) {
-            return response()->json('Form not found', 404); 
+            return response()->json('Form not found', 404);
         }
 
         // Check if the authenticated user is the owner of the form
@@ -115,16 +115,6 @@ class formEnvironmentController extends Controller
      */
     public function update(Request $request, $id)
     {
-        $validator = Validator::make($request->all(),[
-            'category' => 'required|string|max:255',
-            'problem_description' => 'required',
-            'new_image' => 'required', // Add validation for the new image
-            'environment_status' => 'required',
-    ]);
-
-        if($validator->fails()){
-            return response()->json($validator->errors());       
-        }
 
         $user = auth()->user();
 
@@ -134,23 +124,52 @@ class formEnvironmentController extends Controller
             return response()->json('Bill not found', 404);
         }
         // Check if the authenticated user is the owner of the form
-        if ($user->user_id !== $formEnvironment->user_id && $user->role->name !== Role::COMPANY) {
+        if ($user->role->name === Role::COMPANY) {
+            $validator = Validator::make($request->all(), [
+                'environment_status' => 'required',
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json($validator->errors());
+            }
+            $formEnvironment->user_id;
+            $formEnvironment->username;
+            $formEnvironment->fullname;
+            $formEnvironment->email;
+            $formEnvironment->category;
+            $formEnvironment->problem_description;
+            $formEnvironment->path;
+            $formEnvironment->environment_status = $request->environment_status; // Update the environment_status value
+
+            $formEnvironment->save();
+
+            return response($formEnvironment, 200);
+        } else if ($user->role->name === Role::USER) {
+            $validator = Validator::make($request->all(), [
+                'category' => 'required|string|max:255',
+                'problem_description' => 'required',
+                'path' => 'required', // Add validation for the new image
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json($validator->errors());
+            }
+
+            $formEnvironment->user_id;
+            $formEnvironment->username;
+            $formEnvironment->fullname;
+            $formEnvironment->email;
+            $formEnvironment->category = $request->category;
+            $formEnvironment->problem_description = $request->problem_description;
+            $formEnvironment->path = $request->path;
+            $formEnvironment->environment_status = $request->environment_status; // Update the environment_status value
+
+            $formEnvironment->save();
+
+            return response($formEnvironment, 200);
+        } else {
             return response()->json('You are not authorized to update this form', 403);
         }
-
-        $formEnvironment->user_id;
-        $formEnvironment->username;
-        $formEnvironment->fullname;
-        $formEnvironment->email;
-        $formEnvironment->category = $request->category;
-        $formEnvironment->problem_description = $request->problem_description;
-        $formEnvironment->path = $request->new_image;
-        $formEnvironment->environment_status = $request->environment_status; // Update the environment_status value
-
-        $formEnvironment->save();
-
-        return response($formEnvironment, 200);
-
     }
 
     /**
@@ -166,8 +185,8 @@ class formEnvironmentController extends Controller
         $formEnvironment = formEnvironment::find($id);
 
         if ($user->user_id !== $formEnvironment->user_id && $user->role->name !== Role::COMPANY) {
-        // User is not authorized to delete this form
-        return response()->json('You are not authorized to delete this form', 403);
+            // User is not authorized to delete this form
+            return response()->json('You are not authorized to delete this form', 403);
         }
         $formEnvironment->delete();
 
@@ -188,14 +207,14 @@ class formEnvironmentController extends Controller
 
         // Add your search criteria based on your needs
         $query->where('user_id', auth()->user()->user_id)
-        ->where(function ($innerQuery) use ($keyword) {
-            $innerQuery->where('username', 'like', "%$keyword%")
-                ->orWhere('fullname', 'like', "%$keyword%")
-                ->orWhere('email', 'like', "%$keyword%")
-                ->orWhere('category', 'like', "%$keyword%")
-                ->orWhere('problem_description', 'like', "%$keyword%")
-                ->orWhere('environment_status', 'like', "%$keyword%");
-        });
+            ->where(function ($innerQuery) use ($keyword) {
+                $innerQuery->where('username', 'like', "%$keyword%")
+                    ->orWhere('fullname', 'like', "%$keyword%")
+                    ->orWhere('email', 'like', "%$keyword%")
+                    ->orWhere('category', 'like', "%$keyword%")
+                    ->orWhere('problem_description', 'like', "%$keyword%")
+                    ->orWhere('environment_status', 'like', "%$keyword%");
+            });
         $results = $query->get();
 
         if ($results->isEmpty()) {
@@ -204,5 +223,4 @@ class formEnvironmentController extends Controller
 
         return response()->json($results);
     }
-
 }
