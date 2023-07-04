@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class Post extends Model
 {
     protected $fillable = [
+        'company_id',
         'user_id',
         'content_type',
         'heading',
@@ -16,7 +17,12 @@ class Post extends Model
 
     public function user()
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(User::class, 'user_id', 'user_id');
+    }
+
+    public function userInfo()
+    {
+        return $this->belongsTo(User_info::class, 'user_id', 'user_id');
     }
 
     public function likes()

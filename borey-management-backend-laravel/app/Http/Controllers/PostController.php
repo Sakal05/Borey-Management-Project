@@ -12,6 +12,8 @@ use App\Models\Role;
 use App\Models\postlike;
 use App\Models\postcomment;
 use App\Models\postshare;
+use Illuminate\Support\Facades\Log;
+
 
 class PostController extends Controller
 {
@@ -27,11 +29,11 @@ class PostController extends Controller
 
         // Check if the authenticated user is a company
         if ($user->role->name === Role::COMPANY) {
-            $data = Post::latest()->get();
-        } else {
-            $data = Post::where('user_id', $user->user_id)->latest()->get();
+            $data = Post::with('user', 'comments.companies', 'userInfo')->latest()->get();
+        } else if ($user->role->name === Role::USER) {
+            $data = Post::with('user', 'comments.userInfo', 'userInfo')->latest()->get();
         }
-        
+
         return response($data, 200);
     }
 
@@ -43,36 +45,42 @@ class PostController extends Controller
      */
     public function store(Request $request)
     {
-        $user = auth()->user();
 
-        // Check if the authenticated user is a company
-        if ($user->role->name === Role::COMPANY) {
-            return response()->json(['error' => 'Company users are not allowed to create the records'], 403);
-        }
-        
-        $validator = Validator::make($request->all(),[
+        $validator = Validator::make($request->all(), [
             'content_type' => 'required',
             'heading' => 'required',
             'description' => 'required',
             'image' => 'required',
         ]);
 
-        if($validator->fails()){
-            return response()->json($validator->errors());       
+        if ($validator->fails()) {
+            return response()->json($validator->errors());
         }
-        
-        $user = auth()->user();
 
-        $posts = Post::create([
-            'user_id' => $user->user_id, // Associate the user ID
-            'content_type' => $request->content_type,
-            'heading' => $request->heading,
-            'description' => $request->description,
-            'image' => $request->image,
-        ]);
-        
-        return response()->json($posts, 200);
-        
+        $user = auth()->user();
+        // Check if the authenticated user is a company
+        if ($user->role->name === Role::COMPANY) {
+            Log::info('Company ID: ' . $user->company_id);
+            $posts = Post::create([
+                'company_id' => $user->company_id,
+                'content_type' => $request->content_type,
+                'heading' => $request->heading,
+                'description' => $request->description,
+                'image' => $request->image,
+            ]);
+            return response()->json($posts, 200);
+        } else if ($user->role->name === Role::USER) {
+            $posts = Post::create([
+                'user_id' => $user->user_id, // Associate the user ID
+                'content_type' => $request->content_type,
+                'heading' => $request->heading,
+                'description' => $request->description,
+                'image' => $request->image,
+            ]);
+            return response()->json($posts, 200);
+        } else {
+            return response()->json(['error' => 'Admins are not allowed to create the records'], 403);
+        }
     }
 
     /**
@@ -85,7 +93,7 @@ class PostController extends Controller
     {
         $posts = Post::find($id);
         if (is_null($posts)) {
-            return response()->json('Post not found', 404); 
+            return response()->json('Post not found', 404);
         }
 
         // Check if the authenticated user is the owner of the form
@@ -95,7 +103,6 @@ class PostController extends Controller
         }
 
         return response()->json($posts, 200);
-
     }
 
 
@@ -118,7 +125,7 @@ class PostController extends Controller
 
         // Handling validation errors
         if ($validator->fails()) {
-            return response()->json($validator->errors());       
+            return response()->json($validator->errors());
         }
 
         $user = auth()->user();
@@ -161,13 +168,14 @@ class PostController extends Controller
 
         $posts = Post::find($id);
 
-        if ($user->user_id !== $posts->user_id && $user->role->name !== Role::COMPANY) {
-        // User is not authorized to delete this form
-        return response()->json('You are not authorized to delete this post', 403);
+        if ($user->role->name === Role::COMPANY && $posts->company_id !== $user->company_id) {
+            return response()->json('You are not authorized to delete this post', 403);
+        } else if ($user->role->name === Role::USER && $posts->user_id !== $user->user_id) {
+            return response()->json('You are not authorized to delete this post', 403);
+        } else {
+            $posts->delete();
+            return response()->json('Post deleted successfully');
         }
-        $posts->delete();
-
-        return response()->json('Post deleted successfully');
     }
 
     /**
@@ -203,10 +211,10 @@ class PostController extends Controller
             // Add your search criteria for other roles here
             $query->where('user_id', $user->id)->where(function ($innerQuery) use ($keyword) {
                 $innerQuery->where('username', 'like', "%$keyword%")
-                ->orWhere('content_type', 'like', "%$keyword%")
-                ->orWhere('heading', 'like', "%$keyword%")
-                ->orWhere('description', 'like', "%$keyword%")
-                ->orWhere('image', 'like', "%$keyword%");
+                    ->orWhere('content_type', 'like', "%$keyword%")
+                    ->orWhere('heading', 'like', "%$keyword%")
+                    ->orWhere('description', 'like', "%$keyword%")
+                    ->orWhere('image', 'like', "%$keyword%");
             });
         }
 
@@ -246,7 +254,7 @@ class PostController extends Controller
 
         return response()->json($like, 200);
     }
-    
+
     public function destroyLike(Request $request)
     {
         $user = auth()->user();
@@ -272,6 +280,8 @@ class PostController extends Controller
         return response()->json('Like removed successfully', 200);
     }
 
+    
+
 
     public function storeComment(Request $request)
     {
@@ -286,14 +296,27 @@ class PostController extends Controller
             return response()->json($validator->errors());
         }
 
-        // Create a new comment record
-        $comment = postcomment::create([
-            'user_id' => $user->user_id,
-            'post_id' => $request->post_id,
-            'content' => $request->content,
-        ]);
+        if ($user->role->name === Role::COMPANY) {
+            $comment = postcomment::create([
+                'company_id' => $user->company_id,
+                'post_id' => $request->post_id,
+                'content' => $request->content,
+            ]);
+            return response()->json($comment, 200);
+        } else if ($user->role->name === Role::USER) {
+            $comment = postcomment::create([
+                'user_id' => $user->user_id,
+                'post_id' => $request->post_id,
+                'content' => $request->content,
+            ]);
+            return response()->json($comment, 200);
+        } else {
+            return response()->json("You are not allowed to comment", 409);
+        }
 
-        return response()->json($comment, 200);
+        // Create a new comment record
+
+        
     }
 
     public function deleteComment(Request $request)
@@ -360,7 +383,5 @@ class PostController extends Controller
         }
 
         return response()->json('Unauthorized to delete the share', 401);
-}
-
-
+    }
 }
