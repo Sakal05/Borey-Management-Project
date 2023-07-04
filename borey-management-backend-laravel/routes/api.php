@@ -11,11 +11,15 @@ use App\Http\Controllers\CompaniesController;
 use App\Http\Controllers\CompaniesPasswordResetController;
 
 use App\Http\Controllers\PostController;
+use App\Http\Controllers\RequestformController;
 use App\Http\Controllers\waterbillsController;
 use App\Http\Controllers\securitybillsController;
 use App\Http\Controllers\electricbillsController;
 use App\Http\Controllers\FormGeneralController;
 use App\Http\Controllers\FormEnvironmentController;
+use App\Http\Controllers\SurveyController;
+use App\Http\Controllers\QuestionController;
+use App\Http\Controllers\AnswerController;
 
 /*
 |--------------------------------------------------------------------------
@@ -92,7 +96,31 @@ Route::middleware(['auth:sanctum'])->group(function(){
 
     //Water bills Request
     Route::resource('waterbills', waterbillsController::class);
-    Route::post('waterbills/{waterbills}', [waterbillsController::class, 'update'])->name('waterbills.update');
+    Route::post('waterbills/{waterbill}', [waterbillsController::class, 'update'])->name('waterbills.update');
+
+    //Request form Request
+    Route::resource('requestforms', RequestformController::class);
+    Route::post('requestforms/{requestform}', [RequestformController::class, 'update'])->name('requestforms.update');
+
+
+    // Survey routes
+    Route::get('/surveys', [SurveyController::class, 'index']);
+    Route::post('/surveys', [SurveyController::class, 'store']);
+    Route::get('/surveys/{id}', [SurveyController::class, 'show']);
+    Route::post('/surveys/{id}', [SurveyController::class, 'update']);
+    Route::delete('/surveys/{id}', [SurveyController::class, 'destroy']);
+
+    // Question routes
+    Route::get('/surveys/{surveyId}/questions', [QuestionController::class, 'index']);
+    Route::post('/questions', [QuestionController::class, 'store']);
+    Route::get('/surveys/{surveyId}/questions/{questionId}', [QuestionController::class, 'show']);
+    Route::post('/questions/{question}', [QuestionController::class, 'update']);
+    Route::delete('/questions/{question}', [QuestionController::class, 'delete']);
+
+    // Answer routes
+    Route::post('/questions/{question}/answers', [AnswerController::class, 'store']);
+    Route::post('/questions/{question}/answers/{answer}', [AnswerController::class, 'update']);
+    Route::delete('/questions/{question}/answers/{answer}', [AnswerController::class, 'delete']);
 
 });
 

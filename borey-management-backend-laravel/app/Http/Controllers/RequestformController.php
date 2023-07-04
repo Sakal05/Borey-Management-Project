@@ -2,18 +2,13 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\Auth;
-use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Validator;
-use App\Models\formGeneral;
-use App\Models\User;
-use App\Http\Resources\FormGeneralResource;
 use App\Models\Role;
+use App\Models\Requestform;
 
-
-class formGeneralController extends Controller
+class RequestformController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -26,14 +21,14 @@ class formGeneralController extends Controller
 
         // Check if the authenticated user is a company
         if ($user->role->name === Role::COMPANY) {
-            $data = formGeneral::latest()->get();
+            $data = Requestform::latest()->get();
         } else {
-            $data = formGeneral::where('user_id', $user->user_id)->latest()->get();
+            $data = Requestform::where('user_id', $user->user_id)->latest()->get();
         }
 
         return response($data, 200);
+
     }
-    
     /**
      * Store a newly created resource in storage.
      *
@@ -51,9 +46,9 @@ class formGeneralController extends Controller
 
         $validator = Validator::make($request->all(),[
             'category' => 'required|string|max:255',
-            'problem_description' => 'required',
+            'request_description' => 'required',
             'image' => 'required', // Restrict the file types and size
-            'general_status' => 'required',
+            'request_status' => 'required',
         ]);
 
         if($validator->fails()){
@@ -65,20 +60,18 @@ class formGeneralController extends Controller
         $fullname = $user->fullname;
         $email = $user->email;
 
-        $formGeneral = formGeneral::create([
+        $requestform = Requestform::create([
             'user_id' => $user->user_id, // Associate the user ID
             'username' => $username,
             'fullname' => $fullname,
             'email' => $email,
             'category' => $request->category,
-            'problem_description' => $request->problem_description,
+            'request_description' => $request->request_description,
             'path' => $request->image, // Save the image path in the database
-            'general_status' => $request->general_status,
+            'request_status' => $request->request_status,
          ]);
         
-        return response()->json($formGeneral, 200);
-        // return response()->json(['Form created successfully.', new FormGeneralResource($formGeneral)]);
-
+        return response()->json($requestform, 200);
     }
 
     /**
@@ -89,21 +82,19 @@ class formGeneralController extends Controller
      */
     public function show($id)
     {
-        $formGeneral = formGeneral::find($id);
-        if (is_null($formGeneral)) {
+        $requestform = Requestform::find($id);
+        if (is_null($requestform)) {
             return response()->json('Data not found', 404); 
         }
 
         // Check if the authenticated user is the owner of the form
         $user = auth()->user();
-        if ($user->user_id !== $formGeneral->user_id && $user->role->name !== Role::COMPANY) {
+        if ($user->user_id !== $requestform->user_id && $user->role->name !== Role::COMPANY) {
             return response()->json('You are not authorized to view this form', 403);
         }
 
-        return response()->json($formGeneral, 200);
-        // return response()->json([new FormGeneralResource($formGeneral)]);
+        return response()->json($requestform, 200);
     }
-    
 
     /**
      * Update the specified resource in storage.
@@ -116,9 +107,9 @@ class formGeneralController extends Controller
     {
         $validator = Validator::make($request->all(),[
             'category' => 'required|string|max:255',
-            'problem_description' => 'required',
+            'request_description' => 'required',
             'new_image' => 'required', // Add validation for the new image
-            'general_status' => 'required',
+            'request_status' => 'required',
         ]);
 
         if($validator->fails()){
@@ -126,25 +117,25 @@ class formGeneralController extends Controller
         }
 
         $user = auth()->user();
-        $formGeneral = formGeneral::find($id);
+        $requestform = Requestform::find($id);
         // Check if the authenticated user is the owner of the form
-        if ($user->user_id !== $formGeneral->user_id && $user->role->name !== Role::COMPANY) {
+        if ($user->user_id !== $requestform->user_id && $user->role->name !== Role::COMPANY) {
             return response()->json('You are not authorized to update this form', 403);
         }
 
-        $formGeneral->user_id;
-        $formGeneral->username;
-        $formGeneral->fullname;
-        $formGeneral->email;
-        $formGeneral->category = $request->category;
-        $formGeneral->problem_description = $request->problem_description;
-        $formGeneral->path = $request->new_image;
-        $formGeneral->general_status = $request->general_status; // Update the environment_status value
+        $requestform->user_id;
+        $requestform->username;
+        $requestform->fullname;
+        $requestform->email;
+        $requestform->category = $request->category;
+        $requestform->request_description = $request->request_description;
+        $requestform->path = $request->new_image;
+        $requestform->request_status = $request->request_status; // Update the environment_status value
 
-        $formGeneral->save();
+        $requestform->save();
         
 
-        return response($formGeneral, 200);
+        return response($requestform, 200);
     }
 
     /**
@@ -153,15 +144,15 @@ class formGeneralController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function destroy(formGeneral $formGeneral)
+    public function destroy(Requestform $requestform)
     {
         $user = auth()->user();
-        if ($user->user_id !== $formGeneral->user_id && $user->role->name !== Role::COMPANY) {
+        if ($user->user_id !== $requestform->user_id && $user->role->name !== Role::COMPANY) {
         // User is not authorized to delete this form
         return response()->json('You are not authorized to delete this form', 403);
         }
 
-        $formGeneral->delete();
+        $requestform->delete();
         
         return response()->json('Form deleted successfully');
     }
@@ -176,7 +167,7 @@ class formGeneralController extends Controller
     {
         $keyword = $request->input('keyword');
 
-        $query = formGeneral::query();
+        $query = Requestform::query();
 
         // Add your search criteria based on your needs
         $query->where('user_id', auth()->user()->user_id)
@@ -185,8 +176,8 @@ class formGeneralController extends Controller
                 ->orWhere('fullname', 'like', "%$keyword%")
                 ->orWhere('email', 'like', "%$keyword%")
                 ->orWhere('category', 'like', "%$keyword%")
-                ->orWhere('problem_description', 'like', "%$keyword%")
-                ->orWhere('general_status', 'like', "%$keyword%");
+                ->orWhere('request_description', 'like', "%$keyword%")
+                ->orWhere('request_status', 'like', "%$keyword%");
         });
         $results = $query->get();
 
