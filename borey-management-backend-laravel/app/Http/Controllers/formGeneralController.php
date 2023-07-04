@@ -33,7 +33,7 @@ class formGeneralController extends Controller
 
         return response($data, 200);
     }
-    
+
     /**
      * Store a newly created resource in storage.
      *
@@ -49,15 +49,15 @@ class formGeneralController extends Controller
             return response()->json(['error' => 'Company users are not allowed to create user info records'], 403);
         }
 
-        $validator = Validator::make($request->all(),[
+        $validator = Validator::make($request->all(), [
             'category' => 'required|string|max:255',
             'problem_description' => 'required',
             'image' => 'required', // Restrict the file types and size
             'general_status' => 'required',
         ]);
 
-        if($validator->fails()){
-            return response()->json($validator->errors());       
+        if ($validator->fails()) {
+            return response()->json($validator->errors());
         }
 
         $user = auth()->user();
@@ -74,8 +74,8 @@ class formGeneralController extends Controller
             'problem_description' => $request->problem_description,
             'path' => $request->image, // Save the image path in the database
             'general_status' => $request->general_status,
-         ]);
-        
+        ]);
+
         return response()->json($formGeneral, 200);
         // return response()->json(['Form created successfully.', new FormGeneralResource($formGeneral)]);
 
@@ -91,7 +91,7 @@ class formGeneralController extends Controller
     {
         $formGeneral = formGeneral::find($id);
         if (is_null($formGeneral)) {
-            return response()->json('Data not found', 404); 
+            return response()->json('Data not found', 404);
         }
 
         // Check if the authenticated user is the owner of the form
@@ -103,7 +103,7 @@ class formGeneralController extends Controller
         return response()->json($formGeneral, 200);
         // return response()->json([new FormGeneralResource($formGeneral)]);
     }
-    
+
 
     /**
      * Update the specified resource in storage.
@@ -114,37 +114,53 @@ class formGeneralController extends Controller
      */
     public function update(Request $request, $id)
     {
-        $validator = Validator::make($request->all(),[
-            'category' => 'required|string|max:255',
-            'problem_description' => 'required',
-            'new_image' => 'required', // Add validation for the new image
-            'general_status' => 'required',
-        ]);
-
-        if($validator->fails()){
-            return response()->json($validator->errors());       
-        }
 
         $user = auth()->user();
         $formGeneral = formGeneral::find($id);
         // Check if the authenticated user is the owner of the form
-        if ($user->user_id !== $formGeneral->user_id && $user->role->name !== Role::COMPANY) {
+        if ($user->role->name === Role::COMPANY) {
+            $validator = Validator::make($request->all(), [
+                'general_status' => 'required',
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json($validator->errors());
+            }
+
+            $formGeneral->user_id;
+            $formGeneral->username;
+            $formGeneral->fullname;
+            $formGeneral->email;
+            $formGeneral->category;
+            $formGeneral->problem_description;;
+            $formGeneral->path;
+            $formGeneral->general_status = $request->general_status; // Update the environment_status value
+            $formGeneral->save();
+            return response($formGeneral, 200);
+        } else if ($user->role->name === Role::USER) {
+            $validator = Validator::make($request->all(), [
+                'category' => 'required|string|max:255',
+                'problem_description' => 'required',
+                'new_image' => 'required', // Add validation for the new image
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json($validator->errors());
+            }
+
+            $formGeneral->user_id;
+            $formGeneral->username;
+            $formGeneral->fullname;
+            $formGeneral->email;
+            $formGeneral->category = $request->category;
+            $formGeneral->problem_description = $request->problem_description;
+            $formGeneral->path = $request->new_image;
+            $formGeneral->general_status; // Update the environment_status value
+            $formGeneral->save();
+            return response($formGeneral, 200);
+        } else {
             return response()->json('You are not authorized to update this form', 403);
         }
-
-        $formGeneral->user_id;
-        $formGeneral->username;
-        $formGeneral->fullname;
-        $formGeneral->email;
-        $formGeneral->category = $request->category;
-        $formGeneral->problem_description = $request->problem_description;
-        $formGeneral->path = $request->new_image;
-        $formGeneral->general_status = $request->general_status; // Update the environment_status value
-
-        $formGeneral->save();
-        
-
-        return response($formGeneral, 200);
     }
 
     /**
@@ -157,12 +173,12 @@ class formGeneralController extends Controller
     {
         $user = auth()->user();
         if ($user->user_id !== $formGeneral->user_id && $user->role->name !== Role::COMPANY) {
-        // User is not authorized to delete this form
-        return response()->json('You are not authorized to delete this form', 403);
+            // User is not authorized to delete this form
+            return response()->json('You are not authorized to delete this form', 403);
         }
 
         $formGeneral->delete();
-        
+
         return response()->json('Form deleted successfully');
     }
 
@@ -180,14 +196,14 @@ class formGeneralController extends Controller
 
         // Add your search criteria based on your needs
         $query->where('user_id', auth()->user()->user_id)
-        ->where(function ($innerQuery) use ($keyword) {
-            $innerQuery->where('username', 'like', "%$keyword%")
-                ->orWhere('fullname', 'like', "%$keyword%")
-                ->orWhere('email', 'like', "%$keyword%")
-                ->orWhere('category', 'like', "%$keyword%")
-                ->orWhere('problem_description', 'like', "%$keyword%")
-                ->orWhere('general_status', 'like', "%$keyword%");
-        });
+            ->where(function ($innerQuery) use ($keyword) {
+                $innerQuery->where('username', 'like', "%$keyword%")
+                    ->orWhere('fullname', 'like', "%$keyword%")
+                    ->orWhere('email', 'like', "%$keyword%")
+                    ->orWhere('category', 'like', "%$keyword%")
+                    ->orWhere('problem_description', 'like', "%$keyword%")
+                    ->orWhere('general_status', 'like', "%$keyword%");
+            });
         $results = $query->get();
 
         if ($results->isEmpty()) {
