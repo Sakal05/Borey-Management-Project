@@ -27,7 +27,6 @@ class RequestformController extends Controller
         }
 
         return response($data, 200);
-
     }
     /**
      * Store a newly created resource in storage.
@@ -44,15 +43,15 @@ class RequestformController extends Controller
             return response()->json(['error' => 'Company users are not allowed to create user info records'], 403);
         }
 
-        $validator = Validator::make($request->all(),[
+        $validator = Validator::make($request->all(), [
             'category' => 'required|string|max:255',
             'request_description' => 'required',
             'image' => 'required', // Restrict the file types and size
             'request_status' => 'required',
         ]);
 
-        if($validator->fails()){
-            return response()->json($validator->errors());       
+        if ($validator->fails()) {
+            return response()->json($validator->errors());
         }
 
         $user = auth()->user();
@@ -69,8 +68,8 @@ class RequestformController extends Controller
             'request_description' => $request->request_description,
             'path' => $request->image, // Save the image path in the database
             'request_status' => $request->request_status,
-         ]);
-        
+        ]);
+
         return response()->json($requestform, 200);
     }
 
@@ -84,7 +83,7 @@ class RequestformController extends Controller
     {
         $requestform = Requestform::find($id);
         if (is_null($requestform)) {
-            return response()->json('Data not found', 404); 
+            return response()->json('Data not found', 404);
         }
 
         // Check if the authenticated user is the owner of the form
@@ -105,37 +104,52 @@ class RequestformController extends Controller
      */
     public function update(Request $request, $id)
     {
-        $validator = Validator::make($request->all(),[
-            'category' => 'required|string|max:255',
-            'request_description' => 'required',
-            'new_image' => 'required', // Add validation for the new image
-            'request_status' => 'required',
-        ]);
-
-        if($validator->fails()){
-            return response()->json($validator->errors());       
-        }
-
         $user = auth()->user();
         $requestform = Requestform::find($id);
         // Check if the authenticated user is the owner of the form
-        if ($user->user_id !== $requestform->user_id && $user->role->name !== Role::COMPANY) {
+        if ($user->role->name === Role::COMPANY) {
+            $validator = Validator::make($request->all(), [
+                'request_status' => 'required',
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json($validator->errors());
+            }
+
+            $requestform->user_id;
+            $requestform->username;
+            $requestform->fullname;
+            $requestform->email;
+            $requestform->category;
+            $requestform->request_description;;
+            $requestform->path;
+            $requestform->request_status = $request->request_status; // Update the environment_status value
+            $requestform->save();
+            return response($requestform, 200);
+        } else if ($user->role->name === Role::USER) {
+            $validator = Validator::make($request->all(), [
+                'category' => 'required|string|max:255',
+                'request_description' => 'required',
+                'path' => 'required', // Add validation for the new image
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json($validator->errors());
+            }
+
+            $requestform->user_id;
+            $requestform->username;
+            $requestform->fullname;
+            $requestform->email;
+            $requestform->category = $request->category;
+            $requestform->problem_description = $request->request_description;
+            $requestform->path = $request->path;
+            $requestform->request_status; // Update the environment_status value
+            $requestform->save();
+            return response($requestform, 200);
+        } else {
             return response()->json('You are not authorized to update this form', 403);
         }
-
-        $requestform->user_id;
-        $requestform->username;
-        $requestform->fullname;
-        $requestform->email;
-        $requestform->category = $request->category;
-        $requestform->request_description = $request->request_description;
-        $requestform->path = $request->new_image;
-        $requestform->request_status = $request->request_status; // Update the environment_status value
-
-        $requestform->save();
-        
-
-        return response($requestform, 200);
     }
 
     /**
@@ -148,12 +162,12 @@ class RequestformController extends Controller
     {
         $user = auth()->user();
         if ($user->user_id !== $requestform->user_id && $user->role->name !== Role::COMPANY) {
-        // User is not authorized to delete this form
-        return response()->json('You are not authorized to delete this form', 403);
+            // User is not authorized to delete this form
+            return response()->json('You are not authorized to delete this form', 403);
         }
 
         $requestform->delete();
-        
+
         return response()->json('Form deleted successfully');
     }
 
@@ -171,14 +185,14 @@ class RequestformController extends Controller
 
         // Add your search criteria based on your needs
         $query->where('user_id', auth()->user()->user_id)
-        ->where(function ($innerQuery) use ($keyword) {
-            $innerQuery->where('username', 'like', "%$keyword%")
-                ->orWhere('fullname', 'like', "%$keyword%")
-                ->orWhere('email', 'like', "%$keyword%")
-                ->orWhere('category', 'like', "%$keyword%")
-                ->orWhere('request_description', 'like', "%$keyword%")
-                ->orWhere('request_status', 'like', "%$keyword%");
-        });
+            ->where(function ($innerQuery) use ($keyword) {
+                $innerQuery->where('username', 'like', "%$keyword%")
+                    ->orWhere('fullname', 'like', "%$keyword%")
+                    ->orWhere('email', 'like', "%$keyword%")
+                    ->orWhere('category', 'like', "%$keyword%")
+                    ->orWhere('request_description', 'like', "%$keyword%")
+                    ->orWhere('request_status', 'like', "%$keyword%");
+            });
         $results = $query->get();
 
         if ($results->isEmpty()) {

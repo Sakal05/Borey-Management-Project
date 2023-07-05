@@ -21,7 +21,7 @@ class CreateRequestformsTable extends Migration
             $table->string('email');
             $table->string('category');
             $table->string('request_description');
-            $table->string('path');
+            $table->text('path');
             $table->string('request_status')->default('pending');;
             $table->timestamps();
 

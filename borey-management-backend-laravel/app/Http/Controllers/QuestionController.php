@@ -54,7 +54,7 @@ class QuestionController extends Controller
         $validator = Validator::make($request->all(), [
             'survey_id' => 'required|exists:surveys,id,company_id,' . $user->company_id,
             'question' => 'required',
-            'type' => 'required|in:text,mcq',
+            'type' => 'required',
         ]);
 
         if ($validator->fails()) {
