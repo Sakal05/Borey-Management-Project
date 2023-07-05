@@ -6,14 +6,11 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use Validator;
+use Illuminate\Support\Facades\Validator;
 use App\Models\User_info;
-use App\Http\Resources\SecuritybillsResource;
 use App\Models\securitybills;
 use App\Models\Role;
 use App\Models\User;
-
-
 
 class securitybillsController extends Controller
 {
@@ -24,18 +21,22 @@ class securitybillsController extends Controller
      */
     public function index()
     {
-
         $user = auth()->user();
 
         // Check if the authenticated user is a company
         if ($user->role->name === Role::COMPANY) {
+            $data = securitybills::whereHas('user', function ($query) use ($user) {
+                $query->where('company_id', $user->company_id);
+            })->latest()->get();
+        }
+        elseif ($user->role->name === Role::ADMIN) {
             $data = securitybills::latest()->get();
-        } else {
+        }
+        else {
             $data = securitybills::where('user_id', $user->user_id)->latest()->get();
         }
-        
+
         return response($data, 200);
-        // return response()->json([SecuritybillsResource::collection($data), 'Programs fetched.']);
     }
 
     /**
@@ -50,22 +51,30 @@ class securitybillsController extends Controller
 
         // Check if the authenticated user is a company
         if ($user->role->name !== Role::COMPANY) {
-            return response()->json(['error' => 'Only company can create the bill invoice'], 403);
-        }
-
-        $validator = Validator::make($request->all(),[
-            'user_id'=> 'required',
-            'category' => 'required',
-            'price' => 'required',
-            'payment_status' => 'required',
-            'payment_deadline' => 'required',
-        ]);
-
-        if($validator->fails()){
-            return response()->json($validator->errors());       
+            return response()->json(['error' => 'Only Company can create water bill invoices!'], 403);
         }
         
+        $validator = Validator::make($request->all(),[
+            'user_id' => 'required',
+            'category' => 'required',
+            'price' => 'required',
+            'payment_deadline' => 'required',
+            'payment_status' => 'required',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['error' => 'Validation failed', 'errors' => $validator->errors()], 422);
+        }
+
+        $requestedUser = User::where('user_id', $request->user_id)->where('company_id', $user->company_id)->first();
+
+        if (!$requestedUser) {
+            return response()->json(['error' => 'Requested user does not belong to your company'], 403);
+        }
+        
+        
         $user = auth()->user();
+
         $userInfo = User_Info::where('user_id', $request->user_id)->first();
         $userBaseInfo = User::where('user_id', $request->user_id)->first();
 
@@ -74,7 +83,7 @@ class securitybillsController extends Controller
         }
 
         if ($userInfo->house_number === null || $userInfo->street_number === null || $userInfo->phonenumber === null) {
-            return response()->json(['error' => 'User does not have enough information'], 403);
+            return response()->json(['error' => 'User is missing information, cannot create!'], 403);
         }
 
         $securitybills = securitybills::create([
@@ -87,10 +96,10 @@ class securitybillsController extends Controller
             'category' => $request->category,
             'price' => $request->price,
             'payment_status' => $request->payment_status,
+            'paid_date' => $request->paid_date,
         ]);
         
-        return response()->json($securitybills, 200);
-        //return response()->json(['Bill created successfully.', new SecuritybillsResource($securitybills)]);
+        return response($securitybills, 200);
     }
 
     /**
@@ -103,17 +112,20 @@ class securitybillsController extends Controller
     {
         $securitybills = securitybills::find($id);
         if (is_null($securitybills)) {
-            return response()->json('Bill not found', 404); 
+            return response()->json('Security Bill not found', 404); 
         }
 
         // Check if the authenticated user is the owner of the form
         $user = auth()->user();
-        if ($user->user_id !== $securitybills->user_id && $user->role->name !== Role::COMPANY) {
+        if ($user->role->name === Role::COMPANY && $securitybills->user->company_id !== $user->company_id) {
+            return response()->json('This bill is not in your company record', 403);
+        }
+    
+        if ($user->role->name !== Role::COMPANY && $user->user_id !== $securitybills->user_id) {
             return response()->json('You are not authorized to view this bill', 403);
         }
 
         return response()->json($securitybills, 200);
-        // return response()->json([new SecuritybillsResource($securitybills)]);
     }
 
     /**
@@ -125,43 +137,69 @@ class securitybillsController extends Controller
      */
     public function update(Request $request, $id)
     {
-        // Validating the request data
-        $validator = Validator::make($request->all(), [
-            'category' => 'required',
-            'date_payment' => 'required',
-            'price' => 'required',
-            'payment_status' => 'required',
-        ]);
-
-        // Handling validation errors
-        if ($validator->fails()) {
-            return response()->json($validator->errors());       
-        }
-
         $user = auth()->user();
-        // Retrieve the existing Security bill record
+
+        // Retrieve the existing User_info record
         $securitybills = securitybills::find($id);
 
         if (!$securitybills) {
-            return response()->json('Bill not found', 404);
+            return response()->json('Water Bill not found', 404);
         }
 
+        // Check if the authenticated user is belongs to the company specified in the user table
+        if ($securitybills->user->company_id !== $user->company_id) {
+            return response()->json('You are not authorized to update other company bill', 403);
+        }
+        
         // Check if the authenticated user is the owner of the user info
-        if ($user->user_id !== $securitybills->user_id && $user->role->name !== Role::COMPANY) {
+        if ($user->user_id !== $securitybills->user_id && $user->role->name !== Role::COMPANY ) {
             return response()->json('You are not authorized to update this bill', 403);
         }
 
-        // Updating the electric bill form with the request data
-        $securitybills->category = $request->category;
-        $securitybills->date_payment = $request->date_payment;
-        $securitybills->price = $request->price;
-        $securitybills->payment_status = $request->payment_status;
+        if ($user->role->name === Role::COMPANY) {
+            $validator = Validator::make($request->all(), [
+                'category' => 'required',
+                'payment_deadline' => 'required',
+                'price' => 'required',
+                'payment_status' => 'required',
+            ]);
+    
+            if ($validator->fails()) {
+                return response()->json($validator->errors());
+            }
+    
+            // Updating the electric bill form with the request data
+            $securitybills->category = $request->category;
+            $securitybills->payment_deadline = $request->payment_deadline;
+            $securitybills->price = $request->price;
+            $securitybills->payment_status = $request->payment_status;
 
-        // Saving the updated electric bill form
-        $securitybills->save();
-
-        return response()->json($securitybills, 200);
-        // return response()->json(['Bill updated successfully.', new SecuritybillsResource($securitybills)]);
+            // Saving the updated electric bill form
+            $securitybills->save();
+    
+            // Returning the response
+            return response($securitybills, 200);
+        } elseif ($user->role->name === Role::USER) {
+            $validator = Validator::make($request->all(), [
+                'payment_status' => 'required',
+            ]);
+    
+            if ($validator->fails()) {
+                return response()->json($validator->errors());
+            }
+    
+            // Updating the electric bill form with the request data
+            $securitybills->paid_date = now();
+            $securitybills->payment_status = $request->payment_status;
+    
+            // Saving the updated electric bill form
+            $securitybills->save();
+    
+            // Returning the response
+            return response($securitybills, 200);
+        } else {
+            return response()->json('You are not authorized to update this bill', 403);
+        }
     }
 
 
@@ -178,10 +216,16 @@ class securitybillsController extends Controller
 
         $securitybills = securitybills::find($id);
 
+        // Check if the authenticated user is belongs to the company specified in the user table
+        if ($securitybills->user->company_id !== $user->company_id) {
+            return response()->json('You are not authorized to delete other company bill', 403);
+        }
+
         if ($user->user_id !== $securitybills->user_id && $user->role->name !== Role::COMPANY) {
         // User is not authorized to delete this form
         return response()->json('You are not authorized to delete this bill', 403);
         }
+
         $securitybills->delete();
 
         return response()->json('Bill deleted successfully');
@@ -195,24 +239,59 @@ class securitybillsController extends Controller
      */
     public function search(Request $request)
     {
+        $user = auth()->user();
         $keyword = $request->input('keyword');
 
         $query = securitybills::query();
 
-        // Add your search criteria based on your needs
-        $query->where('user_id', auth()->user()->user_id)
-        ->where(function ($innerQuery) use ($keyword) {
-            $innerQuery->where('username', 'like', "%$keyword%")
-                ->orWhere('fullname', 'like', "%$keyword%")
-                ->orWhere('phonenumber', 'like', "%$keyword%")
-                ->orWhere('house_type', 'like', "%$keyword%")
-                ->orWhere('house_number', 'like', "%$keyword%")
-                ->orWhere('street_number', 'like', "%$keyword%")
-                ->orWhere('category', 'like', "%$keyword%")
-                ->orWhere('date_payment', 'like', "%$keyword%")
-                ->orWhere('price', 'like', "%$keyword%")
-                ->orWhere('payment_status', 'like', "%$keyword%");
-        });
+        // Add your search criteria based on the user's role
+        if ($user->role->name === Role::ADMIN) {
+            // Admin can search all data
+            $query->where(function ($innerQuery) use ($keyword) {
+                $innerQuery->where('user_id', 'like', "%$keyword%")
+                    ->orWhere('fullname', 'like', "%$keyword%")
+                    ->orWhere('phonenumber', 'like', "%$keyword%")
+                    ->orWhere('house_number', 'like', "%$keyword%")
+                    ->orWhere('street_number', 'like', "%$keyword%")
+                    ->orWhere('category', 'like', "%$keyword%")
+                    ->orWhere('paid_date', 'like', "%$keyword%")
+                    ->orWhere('payment_deadline', 'like', "%$keyword%")
+                    ->orWhere('price', 'like', "%$keyword%")
+                    ->orWhere('payment_status', 'like', "%$keyword%");
+            });
+        } elseif ($user->role->name === Role::COMPANY) {
+            // Company can search only for the user data in their company
+            $query->whereHas('user', function ($innerQuery) use ($user, $keyword) {
+                $innerQuery->where('company_id', $user->company_id)
+                    ->where(function ($subQuery) use ($keyword) {
+                        $subQuery->where('username', 'like', "%$keyword%")
+                            ->orWhere('fullname', 'like', "%$keyword%")
+                            ->orWhere('phonenumber', 'like', "%$keyword%")
+                            ->orWhere('house_number', 'like', "%$keyword%")
+                            ->orWhere('street_number', 'like', "%$keyword%")
+                            ->orWhere('category', 'like', "%$keyword%")
+                            ->orWhere('date_payment', 'like', "%$keyword%")
+                            ->orWhere('price', 'like', "%$keyword%")
+                            ->orWhere('payment_status', 'like', "%$keyword%");
+                    });
+            });
+        } elseif ($user->role->name === Role::USER) {
+            // User can search only for their own data
+            $query->where('user_id', $user->user_id)
+                ->where(function ($innerQuery) use ($keyword) {
+                    $innerQuery->where('username', 'like', "%$keyword%")
+                        ->orWhere('fullname', 'like', "%$keyword%")
+                        ->orWhere('phonenumber', 'like', "%$keyword%")
+                        ->orWhere('house_number', 'like', "%$keyword%")
+                        ->orWhere('street_number', 'like', "%$keyword%")
+                        ->orWhere('category', 'like', "%$keyword%")
+                        ->orWhere('date_payment', 'like', "%$keyword%")
+                        ->orWhere('price', 'like', "%$keyword%")
+                        ->orWhere('payment_status', 'like', "%$keyword%");
+                });
+
+        }
+
         $results = $query->get();
 
         if ($results->isEmpty()) {
