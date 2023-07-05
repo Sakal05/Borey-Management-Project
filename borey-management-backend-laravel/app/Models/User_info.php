@@ -10,7 +10,7 @@ class User_info extends Model
     use HasFactory;
     protected $guarded = [];
 
-    protected $fillable = ['user_id', 'username', 'fullname', 'email', 'path', 'dob', 'gender', 'phonenumber', 'house_type', 'house_number', 'street_number'];
+    protected $fillable = ['user_id','image_cid', 'dob', 'gender', 'phonenumber', 'house_type', 'house_number', 'street_number'];
 
 
     public function user()
