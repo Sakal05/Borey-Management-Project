@@ -28,12 +28,12 @@ class PostController extends Controller
         $user = auth()->user();
 
         // Check if the authenticated user is a company
-        if ($user->role->name === Role::COMPANY) {
-            $data = Post::with('user', 'comments.companies', 'userInfo')->latest()->get();
-        } else if ($user->role->name === Role::USER) {
-            $data = Post::with('user', 'comments.userInfo', 'userInfo')->latest()->get();
-        }
+        // if ($user->role->name === Role::COMPANY) {
+        // } else if ($user->role->name === Role::USER) {
+        //     $data = Post::with('user', 'comments.userInfo', 'userInfo')->latest()->get();
+        // }
 
+        $data = Post::with('user', 'comments.companies', 'comments.userInfo.user', 'userInfo', 'likes', 'shares')->latest()->get();
         return response($data, 200);
     }
 
@@ -239,20 +239,36 @@ class PostController extends Controller
             return response()->json($validator->errors());
         }
 
-        // Check if the user has already liked the post
-        $existingLike = postlike::where('user_id', $user->user_id)->where('post_id', $request->post_id)->first();
+        if ($user->role->name === Role::USER) {
+            // Check if the user has already liked the post
+            $existingLike = postlike::where('user_id', $user->user_id)->where('post_id', $request->post_id)->first();
 
-        if ($existingLike) {
-            return response()->json('You have already liked this post', 400);
+            if ($existingLike) {
+                return response()->json('You have already liked this post', 400);
+            }
+
+            // Create a new like record
+            $like = postlike::create([
+                'user_id' => $user->user_id,
+                'post_id' => $request->post_id,
+            ]);
+
+            return response()->json($like, 200);
+        } else if ($user->role->name === Role::COMPANY) {
+            $existingLike = postlike::where('company_id', $user->company_id)->where('post_id', $request->post_id)->first();
+
+            if ($existingLike) {
+                return response()->json('You have already liked this post', 400);
+            }
+
+            // Create a new like record
+            $like = postlike::create([
+                'company_id' => $user->company_id,
+                'post_id' => $request->post_id,
+            ]);
+
+            return response()->json($like, 200);
         }
-
-        // Create a new like record
-        $like = postlike::create([
-            'user_id' => $user->user_id,
-            'post_id' => $request->post_id,
-        ]);
-
-        return response()->json($like, 200);
     }
 
     public function destroyLike(Request $request)
@@ -280,7 +296,7 @@ class PostController extends Controller
         return response()->json('Like removed successfully', 200);
     }
 
-    
+
 
 
     public function storeComment(Request $request)
@@ -316,7 +332,7 @@ class PostController extends Controller
 
         // Create a new comment record
 
-        
+
     }
 
     public function deleteComment(Request $request)

@@ -44,7 +44,7 @@ class electricbillsController extends Controller
      */
     public function store(Request $request)
     {
-
+        
         $user = auth()->user();
 
         // Check if the authenticated user is a company

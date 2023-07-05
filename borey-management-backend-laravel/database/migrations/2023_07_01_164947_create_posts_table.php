@@ -19,8 +19,8 @@ class CreatePostsTable extends Migration
             $table->string('company_id')->nullable();
             $table->string('content_type');
             $table->string('heading');
-            $table->string('description');
-            $table->string('image');
+            $table->text('description');
+            $table->text('image');
             $table->timestamps();
 
             $table->foreign('user_id')->references('user_id')->on('users')->onDelete('cascade');
