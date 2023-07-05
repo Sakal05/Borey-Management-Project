@@ -21,7 +21,7 @@ class CreateFormEnvironmentsTable extends Migration
             $table->string('email');
             $table->string('category');
             $table->string('problem_description');
-            $table->string('path');
+            $table->text('path');
             $table->string('environment_status')->default('pending');;
             $table->timestamps();
 
