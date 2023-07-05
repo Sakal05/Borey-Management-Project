@@ -152,4 +152,32 @@ class User extends Authenticatable
     {
         return $this->hasMany(electricbills::class, 'user_id');
     }
+
+    public function securitybills()
+    {
+        return $this->hasMany(securitybills::class, 'user_id');
+    }
+
+    public function waterbills()
+    {
+        return $this->hasMany(waterbills::class, 'user_id');
+    }
+
+    public function formgeneral()
+    {
+        return $this->hasMany(formGeneral::class, 'user_id');
+    }
+
+    public function formEnvironment()
+    {
+        return $this->hasMany(formEnvironment::class, 'user_id');
+    }
+
+    public function requestform()
+    {
+        return $this->hasMany(requestform::class, 'user_id');
+    }
+
+    
+
 }
