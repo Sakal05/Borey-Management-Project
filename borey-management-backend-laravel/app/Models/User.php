@@ -93,12 +93,12 @@ class User extends Authenticatable
     protected static function generateUserId()
     {
         $lastUser = static::orderByDesc('id')->first();
-        if ($lastUser) {
-            $lastUserId = (int) ltrim($lastUser->user_id, '0');
-            $nextUserId = str_pad($lastUserId + 1, 4, '0', STR_PAD_LEFT);
-        } else {
-            $nextUserId = '0001';
-        }
+    if ($lastUser) {
+        $lastUserId = (int) ltrim($lastUser->user_id, 'U');
+        $nextUserId = 'U' . str_pad($lastUserId + 1, 3, '0', STR_PAD_LEFT);
+    } else {
+        $nextUserId = 'U001';
+    }
 
         return $nextUserId;
     }
@@ -146,5 +146,10 @@ class User extends Authenticatable
     public function shares()
     {
         return $this->hasMany(postshare::class, 'user_id');
+    }
+
+    public function electricbills()
+    {
+        return $this->hasMany(electricbills::class, 'user_id');
     }
 }

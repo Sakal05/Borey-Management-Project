@@ -10,6 +10,8 @@ use App\Http\Controllers\PasswordResetController;
 use App\Http\Controllers\CompaniesController;
 use App\Http\Controllers\CompaniesPasswordResetController;
 
+use App\Http\Controllers\AdminController;
+
 use App\Http\Controllers\PostController;
 use App\Http\Controllers\RequestformController;
 use App\Http\Controllers\waterbillsController;
@@ -45,13 +47,9 @@ Route::post('/company/login', [CompaniesController::class, 'login']);
 Route::post('/company/send-reset-password-email', [CompaniesPasswordResetController::class, 'send_reset_password_email']);
 Route::post('/company/reset-password/{token}', [CompaniesPasswordResetController::class, 'reset']);
 
-//Search Routes
-Route::get('/user_infos/search', [UserinfoController::class, 'search']);
-Route::get('/form_generals/search', [FormGeneralController::class, 'search']);
-Route::get('form_environments/search', [FormEnvironmentController::class, 'search']);
-Route::get('electricbills/search', [electricbillsController::class, 'search']);
-Route::get('securitybills/search', [securitybillsController::class, 'search']);
-Route::get('waterbills/search', [waterbillsController::class, 'search']);
+// Admin Routes
+Route::post('/admin/register', [AdminController::class, 'register']);
+Route::post('/admin/login', [AdminController::class, 'login']);
 
 // Protected User, Companies Routes
 Route::middleware(['auth:sanctum'])->group(function(){
@@ -73,6 +71,11 @@ Route::middleware(['auth:sanctum'])->group(function(){
     Route::post('postshare', [PostController::class, 'storeShare'])->name('posts.share');
     Route::delete('postshare', [PostController::class, 'deleteShare']);
 
+    // Admin Routes
+    Route::post('/admin/logout', [AdminController::class, 'logout']);
+    Route::get('/admin/loggedadmin', [AdminController::class, 'logged_admin']);
+    Route::post('/admin/changepassword', [AdminController::class, 'change_password']);
+
     // Companies Routes
     Route::post('/company/logout', [CompaniesController::class, 'logout']);
     Route::get('/company/loggedcompany', [CompaniesController::class, 'logged_company']);
@@ -87,6 +90,7 @@ Route::middleware(['auth:sanctum'])->group(function(){
     Route::post('form_environments/{form_environment}', [FormEnvironmentController::class, 'update'])->name('form_environments.update');
 
     //Electric bills Request
+    Route::get('/electricbills/search', [electricbillsController::class, 'search']);
     Route::resource('electricbills', electricbillsController::class);
     Route::post('electricbills/{electricbill}', [electricbillsController::class, 'update'])->name('electricbills.update');
 
@@ -121,6 +125,15 @@ Route::middleware(['auth:sanctum'])->group(function(){
     Route::post('/questions/{question}/answers', [AnswerController::class, 'store']);
     Route::post('/questions/{question}/answers/{answer}', [AnswerController::class, 'update']);
     Route::delete('/questions/{question}/answers/{answer}', [AnswerController::class, 'delete']);
+
+    //Search Routes
+    Route::get('/user_infos/search', [UserinfoController::class, 'search']);
+    Route::get('/form_generals/search', [FormGeneralController::class, 'search']);
+    Route::get('/form_environments/search', [FormEnvironmentController::class, 'search'])->name('formenvironments.search');
+    
+    Route::get('securitybills/search', [securitybillsController::class, 'search']);
+    Route::get('waterbills/search', [waterbillsController::class, 'search']);
+
 
 });
 

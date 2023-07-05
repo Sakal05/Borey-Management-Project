@@ -2,16 +2,13 @@
 
 namespace App\Models;
 
-// use Illuminate\Database\Eloquent\Factories\HasFactory;
-// use Illuminate\Database\Eloquent\Model;
-
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 
-class Companies extends Authenticatable
+class Admin extends Authenticatable
 {
     use HasApiTokens, HasFactory, Notifiable;
 
@@ -21,7 +18,6 @@ class Companies extends Authenticatable
      * @var array<int, string>
      */
     protected $fillable = [
-        'company_name',
         'username',
         'email',
         'password',
@@ -54,8 +50,8 @@ class Companies extends Authenticatable
      */
     protected static function booted()
     {
-        static::creating(function ($company) {
-            $company->company_id = static::generateCompanyId();
+        static::creating(function ($admin) {
+            $admin->admin_id = static::generateAdminId();
         });
     }
 
@@ -64,17 +60,17 @@ class Companies extends Authenticatable
      *
      * @return string
      */
-    protected static function generateCompanyId()
+    protected static function generateAdminId()
     {
-        $lastCompany = static::orderByDesc('id')->first();
-        if ($lastCompany) {
-            $lastCompanyId = (int) ltrim($lastCompany->company_id, 'C');
-            $nextCompanyId =  'C' .str_pad($lastCompanyId + 1, 3, '0', STR_PAD_LEFT);
+        $lastAdmin = static::orderByDesc('id')->first();
+        if ($lastAdmin) {
+            $lastAdminId = (int) ltrim($lastAdmin->admin_id, 'A');
+            $nextAdminId =  'A' .str_pad($lastAdminId + 1, 3, '0', STR_PAD_LEFT);
         } else {
-            $nextCompanyId = 'C001';
+            $nextAdminId = 'A001';
         }
 
-        return $nextCompanyId;
+        return $nextAdminId;
     }
 
     /**
@@ -86,5 +82,4 @@ class Companies extends Authenticatable
     {
         return $this->belongsTo(Role::class);
     }
-
 }
