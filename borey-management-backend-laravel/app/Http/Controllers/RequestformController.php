@@ -33,7 +33,6 @@ class RequestformController extends Controller
         }
 
         return response($data, 200);
-
     }
     /**
      * Store a newly created resource in storage.
@@ -50,15 +49,15 @@ class RequestformController extends Controller
             return response()->json(['error' => 'Company users are not allowed to create the records'], 403);
         }
 
-        $validator = Validator::make($request->all(),[
+        $validator = Validator::make($request->all(), [
             'category' => 'required|string|max:255',
             'request_description' => 'required',
             'image' => 'required',
             'request_status' => 'required',
         ]);
 
-        if($validator->fails()){
-            return response()->json($validator->errors());       
+        if ($validator->fails()) {
+            return response()->json($validator->errors());
         }
 
         $user = auth()->user();
@@ -75,8 +74,8 @@ class RequestformController extends Controller
             'request_description' => $request->request_description,
             'path' => $request->image, // Save the image path in the database
             'request_status' => $request->request_status,
-         ]);
-        
+        ]);
+
         return response()->json($requestform, 200);
     }
 
@@ -90,7 +89,7 @@ class RequestformController extends Controller
     {
         $requestform = Requestform::find($id);
         if (is_null($requestform)) {
-            return response()->json('Data not found', 404); 
+            return response()->json('Data not found', 404);
         }
 
         // Check if the authenticated user is the owner of the form
@@ -199,12 +198,12 @@ class RequestformController extends Controller
         }
 
         if ($user->user_id !== $requestform->user_id && $user->role->name !== Role::COMPANY) {
-        // User is not authorized to delete this form
-        return response()->json('You are not authorized to delete this form', 403);
+            // User is not authorized to delete this form
+            return response()->json('You are not authorized to delete this form', 403);
         }
 
         $requestform->delete();
-        
+
         return response()->json('Form deleted successfully');
     }
 
@@ -220,6 +219,7 @@ class RequestformController extends Controller
         $keyword = $request->input('keyword');
 
         $query = Requestform::query();
+
 
         // Add your search criteria based on the user's role
         if ($user->role->name === Role::ADMIN) {
@@ -261,6 +261,7 @@ class RequestformController extends Controller
                 });
 
         }
+
         $results = $query->get();
 
         if ($results->isEmpty()) {
