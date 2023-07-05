@@ -1,5 +1,5 @@
 // ** React Imports
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 
 // ** MUI Imports
 import Box from '@mui/material/Box'
@@ -23,10 +23,29 @@ import FormControlLabel from '@mui/material/FormControlLabel'
 import FormHelperText from '@mui/material/FormHelperText'
 import FormLabel from '@mui/material/FormLabel'
 import tempQuestionForm from 'src/dummyData/formDummyData'
+import axios from 'axios'
 
 const SurveyFormField = () => {
   console.log('SurveyFormField', tempQuestionForm);
+  const [formData, setFormData] = useState([]);
   
+  const fetchSurveyForm = async () => {
+    const token = localStorage.getItem('token')
+    const res = await axios({
+      url: `http://localhost:8000/api/surveys`,
+      method: 'delete',
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    })
+    setFormData(res)
+    console.log(res)
+  }
+
+  useEffect(() => {
+    fetchSurveyForm
+  })
+
   return (
     <CardContent>
       <form>

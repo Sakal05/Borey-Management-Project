@@ -35,7 +35,7 @@ const createPost = () => {
   const [uploadingImage, setUploadingImage] = useState('')
   // const [collapse, setCollapse] = useState(false)
   const [uploadedImages, setUploadedImages] = useState([]);
-  const [imageCIDs, setImageCIDs] = useState([])
+  const [imageCIDs, setImageCIDs] = useState([]);
   const [contentType, setContentType] = useState('')
   // const [images, setImages] = useState([])
   const [description, setDescription] = useState('')
@@ -99,9 +99,9 @@ const createPost = () => {
         setUploadedImages(uploadedImageURLs)
         
         //display success message
-        setImageCIDs(prevUploadedImagesCID => [...prevUploadedImagesCID ,...uploadedImageCIDs])
-        toast.success('Upload image successfully')
-        setUploadingImage('false')
+        setImageCIDs(uploadedImageURLs);
+        toast.success('Upload image successfully');
+        setUploadingImage('false');
       }
     } catch (err) {
       setUploadingImage('')

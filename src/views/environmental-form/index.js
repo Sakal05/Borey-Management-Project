@@ -1,3 +1,4 @@
+// ** React Imports
 import { useState, useContext, useRef, useEffect } from 'react'
 
 // ** MUI Imports
@@ -22,15 +23,10 @@ import { SettingsContext } from '../../../src/@core/context/settingsContext'
 import axios from 'axios'
 import { toast } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
-import { FruitPear, Image } from 'mdi-material-ui'
 import { useRouter } from 'next/router'
-
-const ImgStyled = styled('img')(({ theme }) => ({
-  width: 120,
-  height: 120,
-  marginRight: theme.spacing(6.25),
-  borderRadius: theme.shape.borderRadius
-}))
+import ImageList from '@mui/material/ImageList'
+import ImageListItem from '@mui/material/ImageListItem'
+import RemoveCircleOutline from '@mui/icons-material/RemoveCircleOutline'
 
 const ButtonStyled = styled(Button)(({ theme }) => ({
   [theme.breakpoints.down('sm')]: {
@@ -49,7 +45,7 @@ const ResetButtonStyled = styled(Button)(({ theme }) => ({
   }
 }))
 
-const EnvironmentalFormField = () => {
+const FormField = () => {
   const JWT = process.env.JWT
   // ** State
   const [imgSrc, setImgSrc] = useState('/images/avatars/1.png')
@@ -57,33 +53,15 @@ const EnvironmentalFormField = () => {
   const [forMeStatus, setForMeStatus] = useState(true)
   const [imagePath, setImagePath] = useState(null)
   const [userInfo, setUserInfo] = useState({})
+  const [uploadedImages, setUploadedImages] = useState([]);
+  const [imageCIDs, setImageCIDs] = useState([]);
+  const [uploadingImage, setUploadingImage] = useState('')
 
-  const router = useRouter();
-
-  const handleChangeFile = async e => {
-    const file = e.target.files[0]
-    console.log(file);
-    try {
-      const res = await axios({
-        method: 'delete',
-        url: `https://api.pinata.cloud/pinning/unpin/${formData.image}`,
-        headers: {
-          Authorization: `Bearer ${process.env.JWT}`
-        }
-      })
-      console.log(res);
-      await pinFileToIPFS(file);
-      toast.success("Image change successfully")
-    } catch (e) {
-      toast.error("Please update your image before updating")
-      console.error(e)
-    }
-  }
+  const router = useRouter()
 
   const {
     contextTokenValue: { token }
   } = useContext(SettingsContext)
-  const [uploadingImage, setUploadingImage] = useState('')
 
   const [formData, setFormData] = useState({
     fullname: userInfo.fullname,
@@ -94,77 +72,94 @@ const EnvironmentalFormField = () => {
     environment_status: 'pending'
   })
 
-  const pinFileToIPFS = async file => {
+  const pinFilesToIPFS = async files => {
     // console.log(src)
-    const form = new FormData()
-
-    form.append('file', file)
-
-    const metadata = JSON.stringify({
-      name: file.name
-    })
-
-    form.append('pinataMetadata', metadata)
-
-    const options = JSON.stringify({
-      cidVersion: 0
-    })
-    form.append('pinataOptions', options)
-
+    const uploadedImageURLs = []
+    const uploadedImageCIDs = []
     try {
-      setUploadingImage('true')
-      const res = await axios.post('https://api.pinata.cloud/pinning/pinFileToIPFS', form, {
-        maxBodyLength: 'Infinity',
-        headers: {
-          'Content-Type': `multipart/form-data; boundary=${form._boundary}`,
-          Authorization: `Bearer ${JWT}`
-        }
-      })
-      console.log(res.data)
-      const image_cid = res.data.IpfsHash
-      console.log(image_cid)
-      // setImage_cid(image_cid);
+      for (const file of files) {
+        const form = new FormData()
+
+        form.append('file', file)
+
+        const metadata = JSON.stringify({
+          name: file.name
+        })
+
+        form.append('pinataMetadata', metadata)
+
+        const options = JSON.stringify({
+          cidVersion: 0
+        })
+        form.append('pinataOptions', options)
+
+        setUploadingImage('true')
+        const res = await axios.post('https://api.pinata.cloud/pinning/pinFileToIPFS', form, {
+          maxBodyLength: 'Infinity',
+          headers: {
+            'Content-Type': `multipart/form-data; boundary=${form._boundary}`,
+            Authorization: `Bearer ${JWT}`
+          }
+        })
+  
+        console.log(res.data)
+        //set image cid to get it store in backend
+        const image_cid = res.data.IpfsHash
+        console.log(image_cid)
+        uploadedImageCIDs.push(image_cid)
+
+        const imageURL = `https://gateway.ipfs.io/ipfs/${image_cid}`
+        uploadedImageURLs.push(imageURL)
+        setUploadedImages(uploadedImageURLs)
+        
+        //display success message
+        setImageCIDs(uploadedImageURLs);
+        toast.success('Upload image successfully');
+        setUploadingImage('false');
+      }
+      const imageCidsString = uploadedImageCIDs.join(',')
       setFormData(prevState => ({
         ...prevState,
-        image: image_cid
+        image: imageCidsString
       }))
-      setUploadingImage('false')
     } catch (err) {
       setUploadingImage('')
+      console.error(err)
       toast.error('Not able to upload file')
     }
   }
 
-  const fetchUploadedImage = async cid => {
-    // const ipfsGateway = 'https://gateway.ipfs.io/ipfs/'
-    if (formData.image !== '') {
-      try {
-        const response = await fetch(`https://gateway.ipfs.io/ipfs/${cid}`)
-        if (!response.ok) {
-          throw new Error('Failed to fetch image from IPFS')
+  const onChangeFile = async e => {
+    const files = Array.from(e.target.files)
+    console.log(files)
+
+    await pinFilesToIPFS(files)
+  }
+
+  const handleRemoveImage = async index => {
+    const updatedImages = [...uploadedImages]
+    updatedImages.splice(index, 1)
+    setUploadedImages(updatedImages)
+
+    const updateImageCIDs = [...imageCIDs]
+    updateImageCIDs.splice(index, 1)
+    setImageCIDs(updateImageCIDs)
+
+    try {
+      const res = await axios({
+        method: 'delete',
+        url: `https://api.pinata.cloud/pinning/unpin/${updateImageCIDs[index]}`,
+        headers: {
+          Authorization: `Bearer ${process.env.JWT}`
         }
-        const blob = await response.blob()
-        const imageURL = URL.createObjectURL(blob)
-        console.log(imageURL)
-        setImagePath(imageURL)
-        // Use the fetched blob as needed (e.g., display it in an image element)
-        // Example: document.getElementById('imageElement').src = URL.createObjectURL(blob);
-      } catch (error) {
-        toast.error('Unable to load image')
-        console.error(error)
-        // Handle error
-        return null
-      }
+      })
+      console.log(res)
+      toast.success('Image removed successfully')
+    } catch (e) {
+      toast.error('Failed to remove image')
+      console.error(e)
     }
   }
-
-  const onChangeFile = async e => {
-    const file = e.target.files[0]
-    console.log(file)
-
-    await pinFileToIPFS(file)
-  }
-
 
   const handleInput = e => {
     const fieldName = e.target.name
@@ -174,25 +169,15 @@ const EnvironmentalFormField = () => {
       ...prevState,
       [fieldName]: fieldValue
     }))
-
-    if (forMeStatus) {
-      console.log('isForMe')
-
-      setFormData(prevState => ({
-        ...prevState,
-        fullname: 'Sakal Samnang',
-        email: 'sakal05@gmail.com',
-        environment_status: 'pending'
-      }))
-    }
   }
 
   const submitForm = async e => {
     // We don't want the page to refresh
-    e.preventDefault();
+    e.preventDefault()
+
     console.log(formData.category)
     console.log(formData.problem_description)
-    if (formData.category !== "" && formData.problem_description !== "") {
+    if (formData.category !== '' && formData.problem_description !== '') {
       try {
         console.log('Image Field: ', formData.image)
         const res = await axios({
@@ -209,28 +194,29 @@ const EnvironmentalFormField = () => {
         setFormData({
           fullname: '',
           email: '',
-          environment_status: 'pending',
+          general_status: 'pending',
           category: '',
           problem_description: '',
           image: ''
         })
-        setUploadingImage('')
+        setUploadedImages([])
         toast.success('Form submitted successfully')
         imageInputRef.current.value = ''
       } catch (err) {
-        const res = await axios({
-          method: 'delete',
-          url: `https://api.pinata.cloud/pinning/unpin/${formData.image}`,
-          headers: {
-            Authorization: `Bearer ${process.env.JWT}`
-          }
-        })
-        console.log(res)
-        toast.error('Fail to create form, please try again!')
+        // const res = await axios({
+        //   method: 'delete',
+        //   url: `https://api.pinata.cloud/pinning/unpin/${formData.image}`,
+        //   headers: {
+        //     Authorization: `Bearer ${process.env.JWT}`
+        //   }
+        // })
+        // console.log(res)
+        // toast.error('Fail to create form, please try again!')
         console.log(err)
       }
     } else {
-      toast.error("Please fill in the form")
+      toast.error('Please fill in the form')
+      return
     }
   }
 
@@ -252,7 +238,6 @@ const EnvironmentalFormField = () => {
 
   useEffect(() => {
     fetchUser();
-    fetchUploadedImage(formData.image);
   }, [formData])
 
   return (
@@ -284,9 +269,9 @@ const EnvironmentalFormField = () => {
             <FormControl fullWidth>
               <InputLabel>Category</InputLabel>
               <Select label='category' name='category' value={formData.category} onChange={handleInput}>
-                <MenuItem value='electric'>Electric Repair</MenuItem>
-                <MenuItem value='water_supply'>Water Repair</MenuItem>
-                <MenuItem value='house_hold'>House Hold Repair</MenuItem>
+                <MenuItem value='house_whole'>House Whole</MenuItem>
+                <MenuItem value='jomka_jek'>Jom Ka Jek</MenuItem>
+                <MenuItem value='neak_jit_khang'>Neak Jit Khang</MenuItem>
               </Select>
             </FormControl>
           </Grid>
@@ -308,35 +293,35 @@ const EnvironmentalFormField = () => {
                 <ButtonStyled component='label' variant='contained' htmlFor='account-settings-upload-image'>
                   Upload Photo Here
                   <input
-                    ref={imageInputRef}
                     hidden
                     type='file'
+                    multiple
                     onChange={onChangeFile}
                     accept='image/png, image/jpeg'
                     id='account-settings-upload-image'
                   />
                 </ButtonStyled>
-                <ResetButtonStyled color='error' variant='outlined' component='label'>
-                  Change
-                  <input
-                    ref={imageInputRef}
-                    hidden
-                    type='file'
-                    onChange={handleChangeFile}
-                    accept='image/png, image/jpeg'
-                    id='account-settings-upload-image'
-                  />
-                </ResetButtonStyled>
+                
                 <Typography variant='body2' sx={{ marginTop: 5 }}>
                   Allowed PNG or JPEG. Max size of 2MB.
                 </Typography>
               </Box>
             </Box>
-            {imagePath && uploadingImage !== '' && (
-              <Box sx={{ display: 'flex', justifyContent: 'left', alignItems: 'center' }}>
-                <img src={imagePath} alt='Image' style={{ maxWidth: '100%', maxHeight: '100%' }} />
-              </Box>
-            )}
+            {uploadedImages.length > 0 && (
+                <ImageList cols={3} rowHeight={160}>
+                  {uploadedImages.map((imageURL, index) => (
+                    <ImageListItem key={index}>
+                      <img src={imageURL} alt={`Uploaded Image ${index}`} />
+                      <IconButton
+                        onClick={() => handleRemoveImage(index)}
+                        style={{ position: 'absolute', top: 5, right: 5, color: 'red' }}
+                      >
+                        <RemoveCircleOutline />
+                      </IconButton>
+                    </ImageListItem>
+                  ))}
+                </ImageList>
+              )}
           </Grid>
 
           <Grid item xs={12}>
@@ -360,4 +345,4 @@ const EnvironmentalFormField = () => {
   )
 }
 
-export default EnvironmentalFormField
+export default FormField
