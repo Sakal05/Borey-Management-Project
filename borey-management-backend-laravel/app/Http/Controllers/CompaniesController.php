@@ -7,6 +7,7 @@ use App\Models\Companies;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Carbon;
 use App\Models\Role;
+use App\Models\User;
 
 class CompaniesController extends Controller
 {
@@ -105,4 +106,5 @@ class CompaniesController extends Controller
             'status' => 'success'
         ], 200);
     }
+
 }
