@@ -23,20 +23,18 @@ class electricbillsController extends Controller
     public function index()
     {
         $user = auth()->user();
-        
+
         // Check if the authenticated user is a company
         if ($user->role->name === Role::COMPANY) {
             $data = electricbills::whereHas('user', function ($query) use ($user) {
                 $query->where('company_id', $user->company_id);
             })->latest()->get();
+        } else if ($user->role->name === Role::ADMIN) {
+            $data = electricbills::with('user.companies')->latest()->get();
+        } else if ($user->role->name === Role::USER) {
+            $data = electricbills::where('user_id', $user->user_id)->with('user')->latest()->get();
         }
-        elseif ($user->role->name === Role::ADMIN) {
-            $data = electricbills::latest()->get();
-        }
-        else {
-            $data = electricbills::where('user_id', $user->user_id)->latest()->get();
-        }
-        
+
         return response($data, 200);
     }
 
@@ -72,7 +70,7 @@ class electricbillsController extends Controller
         if (!$requestedUser) {
             return response()->json(['error' => 'Requested user does not belong to your company'], 403);
         }
-        
+
         $user = auth()->user();
 
         $userInfo = User_Info::where('user_id', $request->user_id)->first();
@@ -113,6 +111,7 @@ class electricbillsController extends Controller
     {
         $electricbills = electricbills::find($id);
         if (is_null($electricbills)) {
+
             return response()->json('Electric Bill does not found', 404); 
         }
 
@@ -121,7 +120,7 @@ class electricbillsController extends Controller
         if ($user->role->name === Role::COMPANY && $electricbills->user->company_id !== $user->company_id) {
             return response()->json('This bill is not in your company record', 403);
         }
-    
+
         if ($user->role->name !== Role::COMPANY && $user->user_id !== $electricbills->user_id) {
             return response()->json('You are not authorized to view this bill', 403);
         }
@@ -151,9 +150,9 @@ class electricbillsController extends Controller
         if ($electricbills->user->company_id !== $user->company_id) {
             return response()->json('You are not authorized to update other company bill', 403);
         }
-        
+
         // Check if the authenticated user is the owner of the user info
-        if ($user->user_id !== $electricbills->user_id && $user->role->name !== Role::COMPANY ) {
+        if ($user->user_id !== $electricbills->user_id && $user->role->name !== Role::COMPANY) {
             return response()->json('You are not authorized to update this bill', 403);
         }
 
@@ -164,11 +163,11 @@ class electricbillsController extends Controller
                 'price' => 'required',
                 'payment_status' => 'required',
             ]);
-    
+
             if ($validator->fails()) {
                 return response()->json($validator->errors());
             }
-    
+
             // Updating the electric bill form with the request data
             $electricbills->category = $request->category;
             $electricbills->payment_deadline = $request->payment_deadline;
@@ -177,25 +176,25 @@ class electricbillsController extends Controller
 
             // Saving the updated electric bill form
             $electricbills->save();
-    
+
             // Returning the response
             return response($electricbills, 200);
         } elseif ($user->role->name === Role::USER) {
             $validator = Validator::make($request->all(), [
                 'payment_status' => 'required',
             ]);
-    
+
             if ($validator->fails()) {
                 return response()->json($validator->errors());
             }
-    
+
             // Updating the electric bill form with the request data
             $electricbills->paid_date = now();
             $electricbills->payment_status = $request->payment_status;
-    
+
             // Saving the updated electric bill form
             $electricbills->save();
-    
+
             // Returning the response
             return response($electricbills, 200);
         } else {
@@ -223,8 +222,8 @@ class electricbillsController extends Controller
         }
 
         if ($user->user_id !== $electricbills->user_id && $user->role->name !== Role::COMPANY) {
-        // User is not authorized to delete this form
-        return response()->json('You are not authorized to delete this bill', 403);
+            // User is not authorized to delete this form
+            return response()->json('You are not authorized to delete this bill', 403);
         }
 
         $electricbills->delete();
@@ -290,7 +289,6 @@ class electricbillsController extends Controller
                         ->orWhere('price', 'like', "%$keyword%")
                         ->orWhere('payment_status', 'like', "%$keyword%");
                 });
-
         }
 
         $results = $query->get();
@@ -301,6 +299,4 @@ class electricbillsController extends Controller
 
         return response()->json($results);
     }
-
-
 }

@@ -36,6 +36,9 @@ class formEnvironmentController extends Controller
         }
         else {
             $data = formEnvironment::where('user_id', $user->user_id)->latest()->get();
+        } else if ($user->role->name === Role::ADMIN) {
+            $data = formEnvironment::with('user.companies')->latest()->get();
+
         }
 
         return response($data, 200);

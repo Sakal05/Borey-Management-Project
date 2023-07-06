@@ -28,12 +28,10 @@ class securitybillsController extends Controller
             $data = securitybills::whereHas('user', function ($query) use ($user) {
                 $query->where('company_id', $user->company_id);
             })->latest()->get();
-        }
-        elseif ($user->role->name === Role::ADMIN) {
-            $data = securitybills::latest()->get();
-        }
-        else {
-            $data = securitybills::where('user_id', $user->user_id)->latest()->get();
+        } else if ($user->role->name === Role::ADMIN) {
+            $data = securitybills::with('user.companies')->latest()->get();
+        } else if ($user->role->name === Role::USER) {
+            $data = securitybills::where('user_id', $user->user_id)->with('user')->latest()->get();
         }
 
         return response($data, 200);
@@ -137,6 +135,7 @@ class securitybillsController extends Controller
      */
     public function update(Request $request, $id)
     {
+
         $user = auth()->user();
 
         // Retrieve the existing User_info record
@@ -150,7 +149,6 @@ class securitybillsController extends Controller
         if ($securitybills->user->company_id !== $user->company_id) {
             return response()->json('You are not authorized to update other company bill', 403);
         }
-        
         // Check if the authenticated user is the owner of the user info
         if ($user->user_id !== $securitybills->user_id && $user->role->name !== Role::COMPANY ) {
             return response()->json('You are not authorized to update this bill', 403);
@@ -163,11 +161,13 @@ class securitybillsController extends Controller
                 'price' => 'required',
                 'payment_status' => 'required',
             ]);
-    
+
+
             if ($validator->fails()) {
                 return response()->json($validator->errors());
             }
-    
+
+
             // Updating the electric bill form with the request data
             $securitybills->category = $request->category;
             $securitybills->payment_deadline = $request->payment_deadline;
@@ -176,13 +176,24 @@ class securitybillsController extends Controller
 
             // Saving the updated electric bill form
             $securitybills->save();
-    
+
             // Returning the response
             return response($securitybills, 200);
         } elseif ($user->role->name === Role::USER) {
             $validator = Validator::make($request->all(), [
                 'payment_status' => 'required',
             ]);
+
+            if ($validator->fails()) {
+                return response()->json($validator->errors());
+            }
+
+            // Updating the electric bill form with the request data
+            $securitybills->paid_date = now();
+            $securitybills->payment_status = $request->payment_status;
+
+            // Saving the updated electric bill form
+            $securitybills->save();
     
             if ($validator->fails()) {
                 return response()->json($validator->errors());
@@ -200,6 +211,8 @@ class securitybillsController extends Controller
         } else {
             return response()->json('You are not authorized to update this bill', 403);
         }
+
+
     }
 
 

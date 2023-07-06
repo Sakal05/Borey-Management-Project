@@ -40,6 +40,7 @@ Route::post('/login', [UserController::class, 'login']);
 Route::post('/send-reset-password-email', [PasswordResetController::class, 'send_reset_password_email']);
 Route::post('/reset-password/{token}', [PasswordResetController::class, 'reset']);
 Route::post('logout', [UserController::class, 'logout'])->middleware('auth:sanctum');
+Route::get('/companiesId', [CompaniesController::class, 'show_company_id']);
 
 // Companies Routes
 Route::post('/company/register', [CompaniesController::class, 'register']);
@@ -83,7 +84,8 @@ Route::middleware(['auth:sanctum'])->group(function(){
     Route::post('/company/logout', [CompaniesController::class, 'logout']);
     Route::get('/company/loggedcompany', [CompaniesController::class, 'logged_company']);
     Route::post('/company/changepassword', [CompaniesController::class, 'change_password']);
-    
+    Route::get('/company/showCompanies', [CompaniesController::class, 'show_all_company']);
+
     //Form General Request
     Route::get('form_generals/search', [FormGeneralController::class, 'search']);
     Route::resource('form_generals', FormGeneralController::class);

@@ -4,10 +4,13 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Companies;
+use App\Models\User;
+
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Carbon;
 use App\Models\Role;
 use App\Models\User;
+
 
 class CompaniesController extends Controller
 {
@@ -105,6 +108,27 @@ class CompaniesController extends Controller
             'message' => 'Password Changed Successfully',
             'status' => 'success'
         ], 200);
+    }
+
+    public function show_all_company()
+    {
+
+        $admin = auth()->user();
+        if ($admin->role->name === Role::ADMIN) {
+            $data = Companies::with('user')->latest()->get();
+            return response($data, 200);
+        } else {
+            return response("You are not authorized to fetch all company info", 400);
+        }
+
+        return response("Failed to fetch all company info", 400);
+    }
+
+    public function show_company_id()
+    {
+        $companies = Companies::pluck('company_name', 'company_id')->toArray();
+        
+        return response()->json($companies, 200);
     }
 
 }

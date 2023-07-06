@@ -174,7 +174,6 @@ class UserinfoController extends Controller
             return response()->json($validator->errors());       
         }
 
-
         if (!$userinfo) {
             return response()->json('User info not found', 404);
         }
@@ -198,10 +197,13 @@ class UserinfoController extends Controller
         if ($request->has('user.fullname') && $request->has('user.company_id')) {
             $userTable->fullname = $request->input('user.fullname');
             $userTable->company_id = $request->input('user.company_id');
+            $userTable->save();
         } else if ($request->has('user.company_id')) {
             $userTable->company_id = $request->input('user.company_id');
+            $userTable->save();
         } else if ($request->has('user.fullname')) {
             $userTable->fullname = $request->input('user.fullname');
+            $userTable->save();
         }
 
         $userinfo = User_info::where('user_id', $userinfo->user_id)->with('user')->get()->firstOrFail();
