@@ -9,7 +9,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use App\Models\User;
 use App\Models\User_Info;
-use App\Http\Resources\ElectricbillsResource;
 use App\Models\electricbills;
 use App\Models\Role;
 use App\Models\Companies;
@@ -37,7 +36,6 @@ class electricbillsController extends Controller
         }
 
         return response($data, 200);
-        // return response()->json([ElectricbillsResource::collection($data), 'Programs fetched.']);
     }
 
     /**
@@ -113,7 +111,8 @@ class electricbillsController extends Controller
     {
         $electricbills = electricbills::find($id);
         if (is_null($electricbills)) {
-            return response()->json('Bill does not found', 404);
+
+            return response()->json('Electric Bill does not found', 404); 
         }
 
         // Check if the authenticated user is the owner of the form
@@ -127,7 +126,6 @@ class electricbillsController extends Controller
         }
 
         return response()->json($electricbills, 200);
-        // return response()->json([new ElectricbillsResource($electricbills)]);
     }
 
     /**
@@ -145,7 +143,7 @@ class electricbillsController extends Controller
         $electricbills = electricbills::find($id);
 
         if (!$electricbills) {
-            return response()->json('Bill not found', 404);
+            return response()->json('Electric Bill not found', 404);
         }
 
         // Check if the authenticated user is belongs to the company specified in the user table
