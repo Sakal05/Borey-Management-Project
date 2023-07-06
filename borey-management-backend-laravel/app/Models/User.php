@@ -153,6 +153,12 @@ class User extends Authenticatable
         return $this->hasMany(electricbills::class, 'user_id');
     }
 
+
+    public function companies()
+    {
+        return $this->belongsTo(companies::class, 'company_id', 'company_id');
+    }
+
     public function securitybills()
     {
         return $this->hasMany(securitybills::class, 'user_id');
@@ -179,5 +185,6 @@ class User extends Authenticatable
     }
 
     
+
 
 }

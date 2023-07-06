@@ -28,12 +28,12 @@ class formGeneralController extends Controller
             $data = formGeneral::whereHas('user', function ($query) use ($user) {
                 $query->where('company_id', $user->company_id);
             })->latest()->get();
-        }
-        elseif ($user->role->name === Role::ADMIN) {
-            $data = formGeneral::latest()->get();
-        }
-        else {
+        } else if ($user->role->name === Role::USER){
+
+
             $data = formGeneral::where('user_id', $user->user_id)->latest()->get();
+        } else if ($user->role->name === Role::ADMIN) {
+            $data = formGeneral::with('user.companies')->latest()->get();
         }
 
         return response($data, 200);
