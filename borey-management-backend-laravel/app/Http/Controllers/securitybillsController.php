@@ -6,7 +6,7 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use Validator;
+use Illuminate\Support\Facades\Validator;
 use App\Models\User_info;
 use App\Http\Resources\SecuritybillsResource;
 use App\Models\securitybills;
@@ -29,13 +29,16 @@ class securitybillsController extends Controller
 
         // Check if the authenticated user is a company
         if ($user->role->name === Role::COMPANY) {
-            $data = securitybills::latest()->get();
-        } else {
-            $data = securitybills::where('user_id', $user->user_id)->latest()->get();
+            $data = securitybills::whereHas('user', function ($query) use ($user) {
+                $query->where('company_id', $user->company_id);
+            })->latest()->get();
+        } else if ($user->role->name === Role::ADMIN) {
+            $data = securitybills::with('user.companies')->latest()->get();
+        } else if ($user->role->name === Role::USER) {
+            $data = securitybills::where('user_id', $user->user_id)->with('user')->latest()->get();
         }
-        
+
         return response($data, 200);
-        // return response()->json([SecuritybillsResource::collection($data), 'Programs fetched.']);
     }
 
     /**
@@ -126,24 +129,18 @@ class securitybillsController extends Controller
     public function update(Request $request, $id)
     {
         // Validating the request data
-        $validator = Validator::make($request->all(), [
-            'category' => 'required',
-            'date_payment' => 'required',
-            'price' => 'required',
-            'payment_status' => 'required',
-        ]);
-
-        // Handling validation errors
-        if ($validator->fails()) {
-            return response()->json($validator->errors());       
-        }
-
         $user = auth()->user();
-        // Retrieve the existing Security bill record
+
+        // Retrieve the existing User_info record
         $securitybills = securitybills::find($id);
 
         if (!$securitybills) {
             return response()->json('Bill not found', 404);
+        }
+
+        // Check if the authenticated user is belongs to the company specified in the user table
+        if ($securitybills->user->company_id !== $user->company_id) {
+            return response()->json('You are not authorized to update other company bill', 403);
         }
 
         // Check if the authenticated user is the owner of the user info
@@ -151,16 +148,50 @@ class securitybillsController extends Controller
             return response()->json('You are not authorized to update this bill', 403);
         }
 
-        // Updating the electric bill form with the request data
-        $securitybills->category = $request->category;
-        $securitybills->date_payment = $request->date_payment;
-        $securitybills->price = $request->price;
-        $securitybills->payment_status = $request->payment_status;
+        if ($user->role->name === Role::COMPANY) {
+            $validator = Validator::make($request->all(), [
+                'category' => 'required',
+                'payment_deadline' => 'required',
+                'price' => 'required',
+                'payment_status' => 'required',
+            ]);
 
-        // Saving the updated electric bill form
-        $securitybills->save();
+            if ($validator->fails()) {
+                return response()->json($validator->errors());
+            }
 
-        return response()->json($securitybills, 200);
+            // Updating the electric bill form with the request data
+            $securitybills->category = $request->category;
+            $securitybills->payment_deadline = $request->payment_deadline;
+            $securitybills->price = $request->price;
+            $securitybills->payment_status = $request->payment_status;
+
+            // Saving the updated electric bill form
+            $securitybills->save();
+
+            // Returning the response
+            return response($securitybills, 200);
+        } elseif ($user->role->name === Role::USER) {
+            $validator = Validator::make($request->all(), [
+                'payment_status' => 'required',
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json($validator->errors());
+            }
+
+            // Updating the electric bill form with the request data
+            $securitybills->paid_date = now();
+            $securitybills->payment_status = $request->payment_status;
+
+            // Saving the updated electric bill form
+            $securitybills->save();
+
+            // Returning the response
+            return response($securitybills, 200);
+        } else {
+            return response()->json('You are not authorized to update this bill', 403);
+        }
         // return response()->json(['Bill updated successfully.', new SecuritybillsResource($securitybills)]);
     }
 

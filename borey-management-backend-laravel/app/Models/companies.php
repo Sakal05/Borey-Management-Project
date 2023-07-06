@@ -87,4 +87,8 @@ class Companies extends Authenticatable
         return $this->belongsTo(Role::class);
     }
 
+    public function user()
+    {
+        return $this->hasMany(User::class, 'company_id', 'company_id');
+    }
 }

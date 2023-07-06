@@ -26,8 +26,11 @@ class UserinfoController extends Controller
         // Check if the authenticated user is a company
         if ($user->role->name === Role::COMPANY) {
             $data = User_Info::with('user')->latest()->get();
-        } else {
-            $data = User_Info::where('user_id', $user->user_id)->latest()->get();
+
+        } else if ($user->role->name === Role::USER) {
+            $data = User_Info::where('user_id', $user->user_id)->with('user')->latest()->get();
+        } else if ($user->role->name === Role::ADMIN) {
+            $data = User_Info::with('user')->latest()->get();
         }
 
 
@@ -138,20 +141,6 @@ class UserinfoController extends Controller
     public function update(Request $request, $id)
     {
 
-        $validator = Validator::make($request->all(), [
-            'image_cid' => 'required',
-            'dob' => 'required',
-            'gender' => 'required|string|max:255',
-            'phonenumber' => 'required|string|max:255',
-            'house_type' => 'required|string|max:255',
-            'house_number' => 'required|string|max:255',
-            'street_number' => 'required|string|max:255',
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json($validator->errors());       
-        }
-
         $user = auth()->user();
         // Retrieve the existing User_info record
         $userinfo = User_info::find($id);
@@ -185,10 +174,13 @@ class UserinfoController extends Controller
         if ($request->has('user.fullname') && $request->has('user.company_id')) {
             $userTable->fullname = $request->input('user.fullname');
             $userTable->company_id = $request->input('user.company_id');
+            $userTable->save();
         } else if ($request->has('user.company_id')) {
             $userTable->company_id = $request->input('user.company_id');
+            $userTable->save();
         } else if ($request->has('user.fullname')) {
             $userTable->fullname = $request->input('user.fullname');
+            $userTable->save();
         }
 
         $userinfo = User_info::where('user_id', $userinfo->user_id)->with('user')->get()->firstOrFail();

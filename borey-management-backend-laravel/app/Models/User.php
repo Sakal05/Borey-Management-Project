@@ -152,4 +152,9 @@ class User extends Authenticatable
     {
         return $this->hasMany(electricbills::class, 'user_id');
     }
+
+    public function companies()
+    {
+        return $this->belongsTo(companies::class, 'company_id', 'company_id');
+    }
 }

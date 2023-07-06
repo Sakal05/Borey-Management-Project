@@ -29,8 +29,11 @@ class formEnvironmentController extends Controller
         // Check if the authenticated user is a company
         if ($user->role->name === Role::COMPANY) {
             $data = formEnvironment::latest()->get();
-        } else {
+        } else if ($user->role->name === Role::USER) {
             $data = formEnvironment::where('user_id', $user->user_id)->latest()->get();
+        } else if ($user->role->name === Role::ADMIN) {
+            $data = formEnvironment::with('user.companies')->latest()->get();
+
         }
 
         return response($data, 200);

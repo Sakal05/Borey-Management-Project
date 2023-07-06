@@ -27,8 +27,10 @@ class formGeneralController extends Controller
         // Check if the authenticated user is a company
         if ($user->role->name === Role::COMPANY) {
             $data = formGeneral::latest()->get();
-        } else {
+        } else if ($user->role->name === Role::USER){
             $data = formGeneral::where('user_id', $user->user_id)->latest()->get();
+        } else if ($user->role->name === Role::ADMIN) {
+            $data = formGeneral::with('user.companies')->latest()->get();
         }
 
         return response($data, 200);
