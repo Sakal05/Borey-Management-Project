@@ -13,13 +13,18 @@ import newFeedData from 'src/dummyData/newFeedData'
 import Grid from '@mui/material/Grid'
 import NewsFeedCard from '../../views/newsFeedCard'
 import HomeOutline from 'mdi-material-ui/HomeOutline'
+import axios from 'axios'
 
 const AlignItemsList = () => {
   const [searchResults, setSearchResults] = useState([])
   const router = useRouter()
   console.log(router.query)
 
-  const performSearch = () => {
+  const performSearch = async () => {
+
+  // const search = await axios({
+
+  // })
     // Perform the necessary search operations and return the search results with fetch api
     const temp_data = [
       { name: 'sakal', age: 30, location: 'San Francisco, CA' },
@@ -73,14 +78,7 @@ const AlignItemsList = () => {
           </Box>
         ))}
       </Box>
-      <Box>
-        {newFeedData.length !== 0 && <Typography marginLeft={5}>Based on your search result</Typography>}
-        {newFeedData.map(data => (
-          <Grid spacing={5} m={5} key={data.newFeedId}>
-            <NewsFeedCard data={data}></NewsFeedCard>
-          </Grid>
-        ))}
-      </Box>
+      
     </Box>
   )
 }

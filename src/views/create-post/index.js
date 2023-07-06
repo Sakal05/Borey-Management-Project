@@ -99,7 +99,7 @@ const createPost = () => {
         setUploadedImages(uploadedImageURLs)
         
         //display success message
-        setImageCIDs(uploadedImageURLs);
+        setImageCIDs(uploadedImageCIDs);
         toast.success('Upload image successfully');
         setUploadingImage('false');
       }

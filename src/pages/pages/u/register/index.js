@@ -283,7 +283,7 @@ const RegisterPage = () => {
                 onChange={handleChange}
               />
               <FormControl fullWidth sx={{ marginBottom: 4 }}>
-                <InputLabel>Category</InputLabel>
+                <InputLabel>Company</InputLabel>
                 <Select label='Company' name='company_id' value={userInfo.company_id} onChange={handleChange}>
                   {Object.entries(companiesId).map(([companyId, userName]) => (
                     <MenuItem value={companyId}>{userName}</MenuItem>

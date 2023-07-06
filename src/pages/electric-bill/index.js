@@ -33,7 +33,6 @@ const ElectricBill = () => {
     Router.push({
       pathname: '/electric-bill-info',
       query: {
-        userId: userId,
         category: category
       }
     })
@@ -59,9 +58,6 @@ const ElectricBill = () => {
           Electric/Water Bill
         </Typography>
         <Box sx={{ display: 'flex' }} fullWidth>
-          <Grid item xs={12} sm={12} sx={{ margin: 5 }}>
-            <TextField label='User ID' placeholder='Enter user ID' name='userId' onChange={handleUserId} />
-          </Grid>
           <Grid item xs={12} sm={12} sx={{ margin: 5 }}>
             <FormControl>
               <InputLabel id='category-label'>Category</InputLabel>

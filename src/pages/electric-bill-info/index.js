@@ -14,8 +14,9 @@ import MuiTab from '@mui/material/Tab'
 import AccountOutline from 'mdi-material-ui/AccountOutline'
 import LockOpenOutline from 'mdi-material-ui/LockOpenOutline'
 import InformationOutline from 'mdi-material-ui/InformationOutline'
-
+import ElectricBillList from 'src/views/electric-list'
 import ElectricBillInfoForm from 'src/views/electric-bill-info-form'
+//src/views/electric-list
 
 // ** Third Party Styles Imports
 import 'react-datepicker/dist/react-datepicker.css'
@@ -39,27 +40,31 @@ const TabName = styled('span')(({ theme }) => ({
 }))
 
 const EnvironmentFixing = () => {
-  
+  const [value, setValue] = useState('form')
+
+  const handleChange = (event, newValue) => {
+    console.log(newValue)
+    setValue(newValue)
+  }
 
   return (
     <Card>
-      <TabContext>
+      <TabContext value={value}>
         <TabList
           aria-label='account-settings tabs'
           sx={{ borderBottom: theme => `1px solid ${theme.palette.divider}` }}
+          onChange={handleChange}
         >
-          <Tab
-            label={
-              <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                <AccountOutline />
-                <TabName>Electric/Water Bill Information</TabName>
-              </Box>
-            }
-          />
+          <Tab value='form' label={<><AccountOutline />
+          <TabName>Electric/Water Bill Information</TabName></>} />
+          <Tab value='formList' label={<><AccountOutline /><TabName>Electric/Water Bill List</TabName></>} />
         </TabList>
 
-        <TabPanel sx={{ p: 0 }}>
-          <ElectricBillInfoForm/>
+        <TabPanel sx={{ p: 0 }} value='form'>
+          <ElectricBillInfoForm />
+        </TabPanel>
+        <TabPanel sx={{ p: 0 }} value='formList'>
+          <ElectricBillList/>
         </TabPanel>
       </TabContext>
     </Card>

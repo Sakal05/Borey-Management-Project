@@ -15,31 +15,31 @@ import UserDropdown from 'src/@core/layouts/components/shared-components/UserDro
 import NotificationDropdown from 'src/@core/layouts/components/shared-components/NotificationDropdown'
 import AlignItemsList from 'src/pages/search'
 import { useState } from 'react'
-import { useRouter } from 'next/router';
-
+import { useRouter } from 'next/router'
+import axios from 'axios'
 
 const AppBarContent = props => {
   // ** Props
-  const { hidden, settings, saveSettings, toggleNavVisibility } = props;
-  const [searchQuery, setSearchQuery] = useState(''); // Store the search query
-  const [showSearchResults, setShowSearchResults] = useState(false); // Control the visibility of search results
-  const router = useRouter();
+  const { hidden, settings, saveSettings, toggleNavVisibility } = props
+  const [searchQuery, setSearchQuery] = useState('') // Store the search query
+  const [showSearchResults, setShowSearchResults] = useState(false) // Control the visibility of search results
+  const router = useRouter()
 
   // ** Hook
-  const hiddenSm = useMediaQuery(theme => theme.breakpoints.down('sm'));
+  const hiddenSm = useMediaQuery(theme => theme.breakpoints.down('sm'))
 
   const handleSearch = event => {
     if (event.key === 'Enter') {
-      console.log('Event by search: ', event.key);
-      setSearchQuery(event.target.value);
+      console.log('Event by search: ', event.key)
+      setSearchQuery(event.target.value)
       // router.push(`/search?q=${event.target.value}`);
       router.push({
         pathname: '/search',
-        query: { q: `${event.target.value}`, k: "u1" },
-    })
-      setShowSearchResults(true); // Show the search results
+        query: { q: `${event.target.value}`, k: 'u1' }
+      })
+      setShowSearchResults(true) // Show the search results
     }
-    return 
+    return
   }
 
   return (
@@ -54,19 +54,19 @@ const AppBarContent = props => {
             <Menu />
           </IconButton>
         ) : null}
-          <TextField
-            size='small'
-            sx={{ '& .MuiOutlinedInput-root': { borderRadius: 4 } }}
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position='start'>
-                  <Magnify fontSize='small' />
-                </InputAdornment>
-              )
-            }}
-            placeholder='search here...'
-            onKeyDown={handleSearch}
-          />
+        <TextField
+          size='small'
+          sx={{ '& .MuiOutlinedInput-root': { borderRadius: 4 } }}
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position='start'>
+                <Magnify fontSize='small' />
+              </InputAdornment>
+            )
+          }}
+          placeholder='search here...'
+          onKeyDown={handleSearch}
+        />
       </Box>
       <Box className='actions-right' sx={{ display: 'flex', alignItems: 'center' }}>
         <ModeToggler settings={settings} saveSettings={saveSettings} />
@@ -74,7 +74,6 @@ const AppBarContent = props => {
         <UserDropdown />
       </Box>
     </Box>
-    
   )
 }
 

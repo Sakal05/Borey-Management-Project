@@ -31,6 +31,7 @@ import { useRouter } from 'next/router'
 import TextField from '@mui/material/TextField'
 import Comment from 'mdi-material-ui/Comment'
 
+
 const NewsFeedCard = props => {
   const { data } = props
   const [cardData, setCardData] = useState(data)

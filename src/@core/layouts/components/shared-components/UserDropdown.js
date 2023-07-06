@@ -62,30 +62,6 @@ const UserDropdown = () => {
     setAnchorEl(null)
   }
 
-  const fetchUploadedImage = async cid => {
-    // const ipfsGateway = 'https://gateway.ipfs.io/ipfs/'
-    if (cid !== null) {
-      try {
-        const response = await fetch(`https://gateway.ipfs.io/ipfs/${cid}`)
-        if (!response.ok) {
-          throw new Error('Failed to fetch image from IPFS')
-        }
-        const blob = await response.blob()
-        const imageURL = URL.createObjectURL(blob)
-        console.log(imageURL)
-        setImage_cid(imageURL)
-        // Use the fetched blob as needed (e.g., display it in an image element)
-        // Example: document.getElementById('imageElement').src = URL.createObjectURL(blob);
-      } catch (error) {
-        console.error(error)
-        // Handle error
-        return null
-      }
-    } else {
-      console.log('No image')
-    }
-  }
-
   const handleLogOut = async () => {
     console.log('Token in log out page: ', token);
 
@@ -124,7 +100,7 @@ const UserDropdown = () => {
           })
           console.log(res)
           setCurrentUser(res.data.user.user)
-          setImage_cid(res.data.user.image_cid)
+          setImage_cid(`https://gateway.ipfs.io/ipfs/${res.data.user.image_cid}`)
         } catch (err) {
           console.log(err)
         }
@@ -134,10 +110,6 @@ const UserDropdown = () => {
       fetchUser();
     }
   }, [token])
-
-  useEffect(async () => {
-    await fetchUploadedImage(image_cid)
-  }, [image_cid])
 
   const styles = {
     py: 2,

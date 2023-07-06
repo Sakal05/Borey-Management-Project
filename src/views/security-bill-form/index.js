@@ -1,169 +1,203 @@
 // ** React Imports
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useContext } from 'react'
+
 // ** MUI Imports
 import Box from '@mui/material/Box'
 import Grid from '@mui/material/Grid'
 import Link from '@mui/material/Link'
-import Alert from '@mui/material/Alert'
-import Select from '@mui/material/Select'
 import { styled } from '@mui/material/styles'
 import MenuItem from '@mui/material/MenuItem'
 import TextField from '@mui/material/TextField'
 import Typography from '@mui/material/Typography'
-import InputLabel from '@mui/material/InputLabel'
-import AlertTitle from '@mui/material/AlertTitle'
-import IconButton from '@mui/material/IconButton'
 import CardContent from '@mui/material/CardContent'
-import FormControl from '@mui/material/FormControl'
 import Button from '@mui/material/Button'
 import { useRouter } from 'next/router'
+import { SettingsContext } from '../../../src/@core/context/settingsContext'
+import axios from 'axios'
+import { toast } from 'react-toastify'
+import 'react-toastify/dist/ReactToastify.css'
+import CircularProgress from '@mui/material/CircularProgress'
 
 const SecurityBillForm = () => {
+  const {
+    contextTokenValue: { token }
+  } = useContext(SettingsContext)
   const router = useRouter()
-  console.log(router.query.userId)
-  const userId = router.query.userId
+  const [loading, setLoading] = useState(true)
 
-  const [securityInfo, setSecurityInfo] = useState({})
-  const [securityType, setSecurityType] = useState('')
-  const [securityPrice, setSecurityPrice] = useState('0')
+  const [securityInfo, setSecurityInfo] = useState({
+    id: '',
+    user_id: '',
+    fullname: '',
+    payment_deadline: '',
+    house_number: '',
+    phone_number: '',
+    price: ''
+  })
 
-  const handleSecurityType = e => {
-    setSecurityType(e.target.value)
-    setSecurityInfo(prevData => ({
-      ...prevData,
-      securityType: securityType
-    }))
+  const getBillInfo = async () => {
+      try {
+        const res = await axios({
+          url: 'http://localhost:8000/api/securitybills',
+          method: 'GET',
+          headers: {
+            'Content-Type': 'multipart/form-data',
+            Authorization: `Bearer ${token}`
+          }
+        })
+        console.log(res)
 
-    // fetchSecurityInfo();
-    /* Temp data set, reality need to implement data fetching to get price */
-    if (e.target.value === 'standard') {
-      setSecurityPrice('12000');
-    } else if (e.target.value === 'premium') {
-      setSecurityPrice('15000');
-    } else if (e.target.value === 'high-class') {
-      setSecurityPrice('20000');
-    } else {
-      setSecurityPrice('0');
+        if (res.data.length === 0) {
+          toast.error('No data was found')
+          setLoading(false)
+          return
+        } else if (res.data[0].payment_status === 'success') {
+          toast.error('You have no payment this month')
+          setLoading(false)
+          return
+        }
+        //res.data[0]
+        setSecurityInfo(res.data[0])
+        toast.success('Form submitted successfully')
+        setLoading(false)
+      } catch (err) {
+        console.error(err)
+      }
+    
+    setLoading(false);
+  }
+
+  useEffect(() => {
+    getBillInfo()
+  }, [token]);
+
+  console.log(securityInfo)
+  // console.log('ele info: ', securityInfo)
+
+  // const data = securityInfo
+
+  const onSubmit = async e => {
+    e.preventDefault()
+    let url = `http://localhost:8000/api/securitybills/${securityInfo.id}`;
+   
+
+    try {
+      const res = await axios({
+        url: url,
+        method: 'POST',
+        data: { payment_status: 'success' },
+        headers: {
+          'Content-Type': 'multipart/form-data',
+          Authorization: `Bearer ${token}`
+        }
+      })
+      toast.success('Pay Successfully')
+      console.log(res)
+    } catch (e) {
+      console.error(e)
     }
   }
 
-  const fetchSecurityInfo = () => {
-    fetch(`/security--info?type=${securityType}`, {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-            Accept: 'application/json'
-          }
-        })
-         .then(res => res.json())
-         .then(data => {
-            if (data.message === 'fail') {
-              alert(data.message)
-            } else if (data.message ==='success') {
-              setSecurityPrice(data.price)
-            }
-          })
-  }
-
-  const getUserSecurityInfo = () => {
-    fetch(`/security-bill-info?userId=${userId}`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        Accept: 'application/json'
-      }
-    })
-      .then(res => res.json())
-      .then(data => {
-        if (data.message === 'fail') {
-          alert(data.message)
-        } else if (data.message === 'success') {
-          setSecurityInfo(data)
-        }
-      })
-  }
-
-  console.log(securityInfo)
-  console.log(securityType)
-  console.log(securityPrice)
-
-  useEffect(() => {
-    // getUserElectricInfo();
-    setSecurityInfo({
-      userName: 'Sakal Samnang',
-      name: 'Sakal',
-      houseNum: '12',
-      totalBill: securityPrice,
-      paymentDeadline: '12/12/2022'
-    })
-  }, [])
-
   return (
     <CardContent>
-      <form>
-        <Grid container spacing={7}>
-          <Grid item xs={12} sm={6}>
-            <TextField
-              fullWidth
-              label='Username'
-              placeholder='Sakal123'
-              value={securityInfo.userName}
-              InputProps={{
-                readOnly: true
-              }}
-            />
-          </Grid>
-          <Grid item xs={12} sm={6}>
-            <TextField
-              fullWidth
-              label='Name'
-              placeholder='Sakal'
-              value={securityInfo.name}
-              InputProps={{
-                readOnly: true
-              }}
-            />
-          </Grid>
-          <Grid item xs={12} sm={6}>
-            <TextField
-              fullWidth
-              label='House Number'
-              placeholder='B12'
-              value={securityInfo.houseNum}
-              InputProps={{
-                readOnly: true
-              }}
-            />
-          </Grid>
-          <Grid item xs={12} sm={6}>
-            <FormControl fullWidth>
-              <InputLabel>Security Type</InputLabel>
-              <Select label='security-type' value={securityType} onChange={handleSecurityType}>
-                <MenuItem value='standard'>Standard</MenuItem>
-                <MenuItem value='premium'>Premium</MenuItem>
-                <MenuItem value='high-class'>High Class</MenuItem>
-              </Select>
-            </FormControl>
-          </Grid>
+      {loading ? (
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(255, 255, 255, 0.8)',
+            zIndex: 9999
+          }}
+        >
+          <CircularProgress />
+          <Typography variant='body1' style={{ marginLeft: '1rem' }}>
+            Please wait, loading user info...
+          </Typography>
+        </div>
+      ) : (
+        <form onSubmit={onSubmit}>
+          <Grid container spacing={7}>
+            <Grid item xs={12} sm={6}>
+              {/* <Typography variant='h5'> User Name</Typography>
+            <Typography variant='body1'> {data.userName}</Typography> */}
+              <TextField
+                fullWidth
+                label='User ID'
+              
+                // name='userName'
+                value={securityInfo.user_id}
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                label='name'
+                InputProps={{
+                  readOnly: true
+                }}
+                name='Name'
+                value={securityInfo.fullname}
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                label='House Number'
+                InputProps={{
+                  readOnly: true
+                }}
+                name='house_number'
+                value={securityInfo.house_number}
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                label='Payment Deadline'
+                InputProps={{
+                  readOnly: true
+                }}
+                name='payment_deadline'
+                value={securityInfo.payment_deadline}
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                label='Category'
+                InputProps={{
+                  readOnly: true
+                }}
+                name='Category'
+                value={securityInfo.category}
+              />
+            </Grid>
+            <Grid item xs={12} sm={12}>
+              <TextField
+                fullWidth
+                label='Total Bill'
+                InputProps={{
+                  readOnly: true
+                }}
+                name='totalBill'
+                value={securityInfo.price}
+              />
+            </Grid>
 
-          <Grid item xs={12} sm={12}>
-            <TextField
-              fullWidth
-              label='Total Bill'
-              value={securityPrice}
-              InputProps={{
-                readOnly: true
-              }}
-            />
+            <Grid item xs={12}>
+              <Button variant='contained' sx={{ marginRight: 3.5 }} type='submit'>
+                Pay Now
+              </Button>
+            </Grid>
           </Grid>
-
-          <Grid item xs={12}>
-            <Button variant='contained' sx={{ marginRight: 3.5 }}>
-              Pay Now
-            </Button>
-          </Grid>
-        </Grid>
-      </form>
+        </form>
+      )}
     </CardContent>
   )
 }

@@ -26,6 +26,7 @@ const JWT = process.env.JWT
 
 // ** Icons Imports
 import Close from 'mdi-material-ui/Close'
+import { CompareArrows } from '@mui/icons-material'
 
 const ImgStyled = styled('img')(({ theme }) => ({
   width: 120,
@@ -57,14 +58,12 @@ const TabAccount = props => {
 
   // console.log(info.user)
   // ** State
-  const [openAlert, setOpenAlert] = useState(true)
   const [imgSrc, setImgSrc] = useState('/images/avatars/1.png')
-  const imageInputRef = useRef(null)
   const [imagePath, setImagePath] = useState(null)
   const [uploadingImage, setUploadingImage] = useState('')
   const [imageSrc, setImageSrc] = useState(null)
-  const [userInfoId, setUserInfoId] = useState(null)
-  const [fetchForm, setFetchForm] = useState(null)
+  const [imageURL, setImageURL] = useState('');
+ 
   const {
     contextTokenValue: { token }
   } = useContext(SettingsContext)
@@ -78,11 +77,7 @@ const TabAccount = props => {
   // })
 
   const [currentUser, setCurrentUser] = useState(null)
-  const [updatedForm, setUpdatedForm] = useState({
-    fullname: '',
-    company_id: '',
-    image_cid: ''
-  })
+  const [companiesId, setcompaniesId] = useState()
 
   /* 
   'image_cid' => 'required',
@@ -125,6 +120,8 @@ const TabAccount = props => {
       console.log(image_cid)
       // setImage_cid(image_cid);
       setImagePath(image_cid)
+      const imageURL = `https://gateway.ipfs.io/ipfs/${image_cid}`
+      setImageURL(imageURL);
       setUploadingImage('false')
       setCurrentUser(prevState => ({
         ...prevState,
@@ -179,7 +176,7 @@ const TabAccount = props => {
         },
         image_cid: imagePath
       }))
-    } else if (e.target.name === 'company_id') {
+    } else if (fieldName === 'company_id') {
       toast.error('Field cannot be changed')
     }
   }
@@ -197,25 +194,42 @@ const TabAccount = props => {
           Authorization: `Bearer ${token}`
         }
       })
-      toast.success("Change saved");
+      toast.success('Change saved')
       console.log(res)
     } catch (err) {
       console.error(err)
     }
   }
 
+  const fetchAllCompaniesId = async () => {
+    const res = await axios.get('http://127.0.0.1:8000/api/companiesId')
+    console.log(res)
+    setcompaniesId(res.data)
+  }
+
   useEffect(() => {
-    
-    setCurrentUser(info);
-    setImagePath(info.image_cid);
+    setCurrentUser(info)
+    setImagePath(info.image_cid)
+    setImageURL(`https://gateway.ipfs.io/ipfs/${info.image_cid}`)
     if (token !== null) {
       // fetchUser()
     }
   }, [token])
+  
+  // useEffect(() => {
+  //   if (info !== null) {
+  //     // setImageURL(`https://gateway.ipfs.io/ipfs/${info.image_cid}`)
+  //   }
+  // }, [info])
 
   useEffect(() => {
-    fetchUploadedImage(imagePath);
+    fetchUploadedImage();
   }, [imagePath])
+
+  useEffect(() => {
+    fetchAllCompaniesId();
+    
+  }, [])
 
   return (
     <CardContent>
@@ -244,7 +258,7 @@ const TabAccount = props => {
           <Grid container spacing={7}>
             <Grid item xs={12} sx={{ marginTop: 4.8, marginBottom: 3 }}>
               <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                <ImgStyled src={imageSrc === null ? imgSrc : imageSrc} alt='Profile Pic' />
+                <ImgStyled src={imageURL === null ? imgSrc : imageURL} alt='Profile Pic' />
                 <Box>
                   <ButtonStyled component='label' variant='contained' htmlFor='account-settings-upload-image'>
                     Upload New Photo
@@ -329,14 +343,19 @@ const TabAccount = props => {
               />
             </Grid>
             <Grid item xs={12} sm={12}>
-              <FormControl fullWidth>
-                <InputLabel>Company</InputLabel>
-                <Select label='category' name='company_id' value={currentUser.user.company_id} onChange={handleInput}>
-                  <MenuItem value='0001'>PengHout Premium</MenuItem>
-                  <MenuItem value='0002'>Borey Anh</MenuItem>
-                  <MenuItem value='0003'>Borey ah na anh mix dg</MenuItem>
-                </Select>
-              </FormControl>
+              {companiesId && (
+                <FormControl fullWidth sx={{ marginBottom: 4 }}>
+                  <InputLabel>Company</InputLabel>
+                  <Select label='Company' name='company_id' value={currentUser.user.company_id} onChange={handleInput}>
+                    {Object.entries(companiesId).map(([companyId, userName]) => (
+                      <MenuItem value={companyId}>{userName}</MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              )}
+              {!companiesId && (
+                'Loading...'
+              )}
             </Grid>
 
             <Grid item xs={12}>

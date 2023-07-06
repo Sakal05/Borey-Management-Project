@@ -34,7 +34,7 @@ const CustomInput = forwardRef((props, ref) => {
 
 const TabInfo = props => {
   const { info } = props
-  console.log('info para', info)
+  // console.log('info para', info)
   // ** State
   const [userInfoId, setUserInfoId] = useState(null)
   const [date, setDate] = useState(null)
@@ -54,6 +54,8 @@ const TabInfo = props => {
             'street_number' => 'required|string|max:255',
   */
 
+ 
+
   const onChangeDate = e => {
     console.log(e)
     setDate(e)
@@ -72,7 +74,7 @@ const TabInfo = props => {
       ...prevState,
       [fieldName]: fieldValue
     }))
-    console.log(currentInfo.gender)
+    console.log(currentInfo)
   }
 
   const handleSumbit = async e => {
@@ -115,7 +117,7 @@ const TabInfo = props => {
           Authorization: `Bearer ${token}`
         }
       })
-      console.log(res.data.user.gender)
+      console.log('UserInfo: ', res.data.user)
       setCurrentInfo(res.data.user)
       setUserInfoId(res.data.user.id)
       const formattedDate = new Date(res.data.user.dob)
@@ -125,20 +127,10 @@ const TabInfo = props => {
     }
   }
   useEffect(() => {
-    // if (token !== null) {
-    //   fetchUser()
-    // }
-    // setCurrentInfo(...info, {
-    //   dob: info.dob,
-    //   phonenumber: info.phonenumber,
-    //   gender: info.gender,
-    //   house_type: info.house_type,
-    //   house_number: info.house_number,
-    //   street_number: info.street_number
-    // })
-    setCurrentInfo({
+    setCurrentInfo(prevState => ({
+      ...prevState,
       ...info
-    });
+    }));
     const formattedDate = new Date(info.dob)
     setDate(formattedDate)
 
