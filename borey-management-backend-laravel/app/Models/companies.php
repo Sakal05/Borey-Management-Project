@@ -91,4 +91,5 @@ class Companies extends Authenticatable
     {
         return $this->hasMany(User::class, 'company_id', 'company_id');
     }
+
 }

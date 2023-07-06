@@ -125,6 +125,18 @@ class UserinfoController extends Controller
         return response($userinfo, 200);
     }
 
+    public function logged_user_info()
+    {
+        $user_id = auth()->user()->user_id;
+        $userinfo = User_info::where('user_id', $user_id)->with('user')->get()->firstOrFail();
+        return response([
+            'user' => $userinfo,
+            'message' => 'Logged User Data',
+            'status' => 'success'
+        ], 200);
+
+    }
+
     /**
      * Update the specified resource in storage.
      *

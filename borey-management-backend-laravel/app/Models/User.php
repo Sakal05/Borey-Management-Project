@@ -184,6 +184,10 @@ class User extends Authenticatable
         return $this->hasMany(requestform::class, 'user_id');
     }
 
+    public function company()
+    {
+        return $this->belongsTo(Companies::class, 'company_id', 'company_id');
+    }
     
 
 

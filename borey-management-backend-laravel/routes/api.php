@@ -77,6 +77,8 @@ Route::middleware(['auth:sanctum'])->group(function(){
     Route::post('/admin/logout', [AdminController::class, 'logout']);
     Route::get('/admin/loggedadmin', [AdminController::class, 'logged_admin']);
     Route::post('/admin/changepassword', [AdminController::class, 'change_password']);
+    Route::get('/admin/getallusers', [AdminController::class, 'getAllUsers']);
+    Route::get('/admin/getallcompanies', [AdminController::class, 'getAllCompanies']);
 
     // Companies Routes
     Route::post('/company/logout', [CompaniesController::class, 'logout']);
