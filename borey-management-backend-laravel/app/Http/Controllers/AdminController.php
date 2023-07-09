@@ -131,7 +131,7 @@ class AdminController extends Controller
         }
 
         // Fetch all companies along with their associated users
-        $companies = Companies::with('users')->get();
+        $companies = Companies::with('user')->get();
 
         return response()->json(['companies' => $companies]);
     }
