@@ -19,7 +19,7 @@ import Typography from '@mui/material/Typography'
 import CardContent from '@mui/material/CardContent'
 import Button from '@mui/material/Button'
 import { useRouter } from 'next/router'
-import { SettingsContext } from '../../../src/@core/context/settingsContext'
+import { SettingsContext } from '../../@core/context/settingsContext'
 import { FormatListBulleted } from 'mdi-material-ui'
 import FormControl from '@mui/material/FormControl'
 import Select from '@mui/material/Select'
@@ -35,11 +35,10 @@ const CustomInput = forwardRef((props, ref) => {
   return <TextField inputRef={ref} label='Payment Deadline' fullWidth {...props} />
 })
 
-const ElectricBillList = () => {
+const GeneralFormList = () => {
   const router = useRouter()
   const [page, setPage] = useState(0)
   const [rowsPerPage, setRowsPerPage] = useState(10)
-  const { category } = router.query
   const [loading, setLoading] = useState(true)
   const [data, setData] = useState([])
   const [selectedRow, setSelectedRow] = useState(null) // Add selectedRow state
@@ -75,16 +74,9 @@ const ElectricBillList = () => {
   }
 
   const fetchGeneralForm = async () => {
-    let url;
-    if (category === 'electric') {
-      url = 'http://localhost:8000/api/electricbills';
-    } else if (category === 'water') {
-      url = 'http://localhost:8000/api/waterbills';
-    }
-
     try {
       const res = await axios({
-        url: url,
+        url: 'http://localhost:8000/api/form_generals',
         method: 'GET',
         headers: {
           Authorization: `Bearer ${token}`
@@ -158,9 +150,8 @@ const ElectricBillList = () => {
                         </FormControl>
                       </TableCell>
 
-                      <TableCell sx={{ minWidth: 80 }}>Bill Id</TableCell>
-                      <TableCell sx={{ minWidth: 80 }}>User Id</TableCell>
-                      <TableCell sx={{ minWidth: 150 }}>FullName</TableCell>
+                      <TableCell sx={{ minWidth: 80 }}>Form Id</TableCell>
+           
                       <TableCell sx={{ minWidth: 100 }}>Category</TableCell>
                       <TableCell sx={{ minWidth: 50 }}>Created at</TableCell>
                       <TableCell sx={{ minWidth: 50 }}>Status</TableCell>         
@@ -170,7 +161,7 @@ const ElectricBillList = () => {
                     {data &&
                       data.length > 0 &&
                       data
-                        .filter(info => selectedCategory === '' || info.payment_status === selectedCategory)
+                        .filter(info => selectedCategory === '' || info.general_status === selectedCategory)
 
 
                         .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
@@ -181,12 +172,10 @@ const ElectricBillList = () => {
                               <TableRow hover role='checkbox' tabIndex={-1} onClick={() => handleViewDetail(info)}>
                                 <TableCell align='left'></TableCell>
                                 <TableCell align='left'>{info.id}</TableCell>
-                                <TableCell align='left'>{info.user_id}</TableCell>
-                                <TableCell align='left'>{info.fullname}</TableCell>
-                                <TableCell align='left'>{info.category === 'electric' ? 'Electric Bill' : 'Water Bill'}</TableCell>
+                                <TableCell align='left'>{info.category}</TableCell>
                                 
                                 <TableCell align='left'> {moment(info.created_at).format('YYYY-MM-DD')}</TableCell>
-                                <TableCell align='left'>{info.payment_status}</TableCell>
+                                <TableCell align='left'>{info.general_status}</TableCell>
                               </TableRow>
                             </Fragment>
                           )
@@ -211,4 +200,4 @@ const ElectricBillList = () => {
   )
 }
 
-export default ElectricBillList
+export default GeneralFormList

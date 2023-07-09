@@ -12,14 +12,9 @@ import MuiTab from '@mui/material/Tab'
 
 // ** Icons Imports
 import AccountOutline from 'mdi-material-ui/AccountOutline'
-import LockOpenOutline from 'mdi-material-ui/LockOpenOutline'
-import InformationOutline from 'mdi-material-ui/InformationOutline'
 
-// ** Demo Tabs Imports
-import TabInfo from 'src/views/account-settings/TabInfo'
-import TabAccount from 'src/views/account-settings/TabAccount'
-import TabSecurity from 'src/views/account-settings/TabSecurity'
 import EnvironmentalFormField from 'src/views/environmental-form'
+import EnvironmentalFormList from 'src/views/environmental-form-list'
 
 // ** Third Party Styles Imports
 import 'react-datepicker/dist/react-datepicker.css'
@@ -71,12 +66,23 @@ const EnvironmentFixing = () => {
               </Box>
             }
           />
+          <Tab
+            value='formList'
+            label={
+              <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                <AccountOutline />
+                <TabName>Your Forms</TabName>
+              </Box>
+            }
+          />
         </TabList>
 
         <TabPanel sx={{ p: 0 }} value='account'>
           <EnvironmentalFormField />
         </TabPanel>
-        
+        <TabPanel sx={{ p: 0 }} value='formList'>
+          <EnvironmentalFormList />
+        </TabPanel>
       </TabContext>
     </Card>
   )

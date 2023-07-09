@@ -247,7 +247,7 @@ const NewsFeedCard = props => {
         <Typography variant='body2' sx={{ marginBottom: 3, color: 'common.white', textAlign: 'left' }}>
           {cardData.description}
         </Typography>
-        <ImageList cols={2} >
+        <ImageList cols={2}>
           {getImageItems()}
         </ImageList>
         {!viewAllImages && (

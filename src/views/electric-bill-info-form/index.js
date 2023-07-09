@@ -63,7 +63,6 @@ const ElectricBillInfoForm = () => {
         }
         setElectricInfo(res.data[0])
         setLoading(false)
-        toast.success('Form submitted successfully')
       } catch (err) {
         console.error(err)
       }
@@ -90,7 +89,6 @@ const ElectricBillInfoForm = () => {
         }
         //res.data[0]
         setElectricInfo(res.data[0])
-        toast.success('Form submitted successfully')
         setLoading(false)
       } catch (err) {
         console.error(err)

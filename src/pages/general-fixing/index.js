@@ -13,6 +13,7 @@ import MuiTab from '@mui/material/Tab'
 import { AccountOutline } from 'mdi-material-ui'
 import { AutoFix } from 'mdi-material-ui'
 import FormField from 'src/views/form-field'
+import GeneralFormList from 'src/views/general-form-list'
 
 // ** Third Party Styles Imports
 import 'react-datepicker/dist/react-datepicker.css'
@@ -59,12 +60,23 @@ const GeneralFixing = () => {
               </Box>
             }
           />
+          <Tab
+            value='formList'
+            label={
+              <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                <AccountOutline />
+                <TabName>Your Forms</TabName>
+              </Box>
+            }
+          />
         </TabList>
 
         <TabPanel sx={{ p: 0 }} value='account'>
           <FormField />
         </TabPanel>
-       
+        <TabPanel sx={{ p: 0 }} value='formList'>
+          <GeneralFormList />
+        </TabPanel>
       </TabContext>
     </Card>
   )

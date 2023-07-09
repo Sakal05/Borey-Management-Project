@@ -58,7 +58,6 @@ const SecurityBillForm = () => {
         }
         //res.data[0]
         setSecurityInfo(res.data[0])
-        toast.success('Form submitted successfully')
         setLoading(false)
       } catch (err) {
         console.error(err)

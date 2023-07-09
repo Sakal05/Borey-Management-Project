@@ -25,55 +25,48 @@ import FormLabel from '@mui/material/FormLabel'
 import tempQuestionForm from 'src/dummyData/formDummyData'
 import axios from 'axios'
 
-const SurveyFormField = () => {
-  console.log('SurveyFormField', tempQuestionForm);
-  const [formData, setFormData] = useState([]);
-  
-  const fetchSurveyForm = async () => {
-    const token = localStorage.getItem('token')
-    const res = await axios({
-      url: `http://localhost:8000/api/surveys`,
-      method: 'delete',
-      headers: {
-        Authorization: `Bearer ${token}`
-      }
-    })
-    setFormData(res)
-    console.log(res)
-  }
 
-  useEffect(() => {
-    fetchSurveyForm
-  })
-
+const SurveyFormView = ({ survey }) => {
+  const { title, description, questions } = survey;
+  console.log(questions)
   return (
-    <CardContent>
-      <form>
-        <Grid container spacing={7}>
-          {tempQuestionForm.map((form, index) => (
-            <Grid item xs={12} sm={12} key={index}>
-              <Typography variant='h5'>{form.question.questionText}</Typography>
-              <FormControl sx={{ m: 3 }}>
-                <RadioGroup
-                  aria-labelledby='demo-error-radios'
-                  name={`quiz-${index}`} // Provide a unique name for each group
-                >
-                  {form.answers.answerOptions.map((answerOption, optionIndex) => (
-                    <FormControlLabel
-                      key={optionIndex}
-                      value={answerOption.answerNum}
-                      control={<Radio />}
-                      label={answerOption.answerText}
-                    />
-                  ))}
-                </RadioGroup>
-              </FormControl>
-            </Grid>
-          ))}
-        </Grid>
-      </form>
-    </CardContent>
-  )
+    <div>
+      <Typography variant="h4" gutterBottom>
+        {title}
+      </Typography>
+      <Typography variant="body1" gutterBottom>
+        {description}
+      </Typography>
+
+      {questions.map((question) => (
+        <Box key={question.id} mt={4}>
+          <Typography variant="h6" gutterBottom>
+            {question.question}
+          </Typography>
+
+          {question.type === 'mcq' && (
+            <FormControl component="fieldset">
+              <RadioGroup>
+                {question.answers.map((answer) => (
+                  <FormControlLabel key={answer.id} value={answer.id.toString()} control={<Radio />} label={answer.answer} />
+                ))}
+              </RadioGroup>
+            </FormControl>
+          )}
+
+          {question.type === 'text' && (
+            <TextField variant="outlined" fullWidth label="Answer" />
+          )}
+        </Box>
+      ))}
+
+      <Box mt={4}>
+        <Button variant="contained" color="primary">
+          Submit
+        </Button>
+      </Box>
+    </div>
+  );
 }
 
-export default SurveyFormField
+export default SurveyFormView;

@@ -148,8 +148,7 @@ const NewsFeed = () => {
               maxWidth: 600,
               padding: 10,
               borderRadius: 8,
-              boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.1)',
-              backgroundColor: '#ffffff'
+              boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.1)'
             }}
           >
             <Grid item xs={12} onClick={handleClickNewPost}>
@@ -175,45 +174,57 @@ const NewsFeed = () => {
               maxWidth: 600,
               padding: 10,
               borderRadius: 8,
-              boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.1)',
-              backgroundColor: '#ffffff'
+              boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.1)'
             }}
           >
             <TabContext value={value}>
-              <Card sx={{ boxShadow: '0' }}>
-                <TabList centered aria-label='card navigation example' onChange={handleChange}>
-                  <Tab value='1' label='All' sx={{ fontWeight: '900' }} />
-                  <Tab value='2' label='Your Post' sx={{ fontWeight: '900' }} />
-                </TabList>
-                <CardContent sx={{ textAlign: 'center', padding: 0 }}>
-                  <TabPanel value='1' sx={{ p: 0 }}>
-                    {newFeedData
-                      // .filter(data => data.promotion === 'false')
+              <TabList centered aria-label='card navigation example' onChange={handleChange}>
+                <Tab value='1' label='All' sx={{ fontWeight: '900' }} />
+                <Tab value='2' label='Your Post' sx={{ fontWeight: '900' }} />
+              </TabList>
+
+              <TabPanel value='1' sx={{ p: 0 }}>
+                {newFeedData
+                  // .filter(data => data.promotion === 'false')
+                  .map(data => (
+                    <Grid spacing={5} m={5} key={data.id}>
+                      <NewsFeedCard data={data} user_id={currentUser.user_id}></NewsFeedCard>
+                    </Grid>
+                  ))}
+              </TabPanel>
+              <TabPanel value='2' sx={{ p: 0 }}>
+                {newFeedData.length > 0 ? (
+                  newFeedData.some(data => data.user_id === currentUser.user_id) ? (
+                    newFeedData
+                      .filter(data => data.user_id === currentUser.user_id)
                       .map(data => (
                         <Grid spacing={5} m={5} key={data.id}>
                           <NewsFeedCard data={data} user_id={currentUser.user_id}></NewsFeedCard>
                         </Grid>
-                      ))}
-                  </TabPanel>
-                  <TabPanel value='2' sx={{ p: 0 }}>
-                    {newFeedData.length > 0 ? (
-                      newFeedData.some(data => data.user_id === currentUser.user_id) ? (
-                        newFeedData
-                          .filter(data => data.user_id === currentUser.user_id)
-                          .map(data => (
-                            <Grid spacing={5} m={5} key={data.id}>
-                              <NewsFeedCard data={data} user_id={currentUser.user_id}></NewsFeedCard>
-                            </Grid>
-                          ))
-                      ) : (
-                        <Typography>No post yet</Typography>
-                      )
-                    ) : (
-                      <Typography>No post yet</Typography>
-                    )}
-                  </TabPanel>
-                </CardContent>
-              </Card>
+                      ))
+                  ) : (
+                    <Grid
+                      spacing={5}
+                      m={5}
+                      sx={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }}
+                    >
+                      <Typography marginTop={10} variant='h3'>
+                        No posts yet lah
+                      </Typography>
+                    </Grid>
+                  )
+                ) : (
+                  <Grid
+                    spacing={5}
+                    m={5}
+                    sx={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }}
+                  >
+                    <Typography marginTop={10} variant='h3'>
+                      No posts yet lah
+                    </Typography>
+                  </Grid>
+                )}
+              </TabPanel>
             </TabContext>
           </Grid>
         </Grid>
