@@ -22,6 +22,7 @@ use App\Http\Controllers\FormEnvironmentController;
 use App\Http\Controllers\SurveyController;
 use App\Http\Controllers\QuestionController;
 use App\Http\Controllers\AnswerController;
+use App\Http\Controllers\SearchController;
 
 /*
 |--------------------------------------------------------------------------
@@ -136,6 +137,7 @@ Route::middleware(['auth:sanctum'])->group(function(){
     Route::get('securitybills/search', [securitybillsController::class, 'search']);
     Route::get('waterbills/search', [waterbillsController::class, 'search']);
 
-
+    //search function
+    Route::get('/search', [SearchController::class, 'search']);
 });
 

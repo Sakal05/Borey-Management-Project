@@ -7,6 +7,7 @@ use App\Models\Survey;
 use App\Models\Role;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Log;
 
 class SurveyController extends Controller
 {
@@ -16,7 +17,7 @@ class SurveyController extends Controller
 
         // Check if the user has either the "USER" or "COMPANY" role
         if ($user->role->name === Role::USER || $user->role->name === Role::COMPANY) {
-            $surveys = Survey::where('company_id', $user->company_id)->latest()->get();
+            $surveys = Survey::where('company_id', $user->company_id)->get();
             return response()->json($surveys, 200);
         }
 
@@ -53,12 +54,15 @@ class SurveyController extends Controller
 
     public function show($id)
     {
-        $survey = Survey::findOrFail($id);
+        $survey = Survey::with('questions.answers')->findOrFail($id);
 
         $user = auth()->user();
+        Log::info('survey company ID: ' . $survey->company_id);
 
         // Check if the user has either the "USER" or "COMPANY" role and belongs to the same company as the survey
-        if (($user->role->name === Role::USER || $user->role->name === Role::COMPANY) && $user->company_id === $survey->company_id) {
+        if ($user->role->name === Role::USER && $user->company_id === $survey->company_id) {
+            return response()->json($survey, 200);
+        } else if ($user->role->name === Role::COMPANY && $user->company_id === $survey->company_id ) {
             return response()->json($survey, 200);
         }
 
