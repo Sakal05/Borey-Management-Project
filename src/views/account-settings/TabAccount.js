@@ -115,6 +115,7 @@ const TabAccount = props => {
           Authorization: `Bearer ${JWT}`
         }
       })
+      toast.success("Image uploaded successfully")
       console.log(res.data)
       const image_cid = res.data.IpfsHash
       console.log(image_cid)
