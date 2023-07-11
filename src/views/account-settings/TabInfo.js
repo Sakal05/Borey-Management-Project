@@ -123,6 +123,10 @@ const TabInfo = props => {
       const formattedDate = new Date(res.data.user.dob)
       setDate(formattedDate)
     } catch (err) {
+      if ( err.response.data.message === "Unauthenticated.") {
+        console.log("Log in pleam kdmv");
+        router.push("/pages/u/login")
+      }
       console.log(err)
     }
   }

@@ -48,7 +48,7 @@ const SecurityBillForm = () => {
         console.log(res)
 
         if (res.data.length === 0) {
-          toast.error('No data was found')
+          toast.error('You have no payment yet')
           setLoading(false)
           return
         } else if (res.data[0].payment_status === 'success') {

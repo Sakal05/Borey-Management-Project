@@ -22,51 +22,70 @@ import RadioGroup from '@mui/material/RadioGroup'
 import FormControlLabel from '@mui/material/FormControlLabel'
 import FormHelperText from '@mui/material/FormHelperText'
 import FormLabel from '@mui/material/FormLabel'
-import tempQuestionForm from 'src/dummyData/formDummyData'
 import axios from 'axios'
 
-
 const SurveyFormView = ({ survey }) => {
-  const { title, description, questions } = survey;
-  console.log(questions)
-  return (
-    <div>
-      <Typography variant="h4" gutterBottom>
-        {title}
-      </Typography>
-      <Typography variant="body1" gutterBottom>
-        {description}
-      </Typography>
+  const { title, description, questions } = survey
 
-      {questions.map((question) => (
-        <Box key={question.id} mt={4}>
-          <Typography variant="h6" gutterBottom>
-            {question.question}
+  const handleSubmit = async () => {
+    e.preventDefault()
+    toast.success('Thank for submitting, this feature will be available soon.')
+  }
+
+  if (questions && questions.length > 0) {
+    console.log(questions)
+
+    return (
+      <form onSubmit={handleSubmit}>
+        <Box>
+          <Typography variant='h4' gutterBottom>
+            Title: {title}
+          </Typography>
+          <Typography variant='body1' gutterBottom>
+            Description: {description}
           </Typography>
 
-          {question.type === 'mcq' && (
-            <FormControl component="fieldset">
-              <RadioGroup>
-                {question.answers.map((answer) => (
-                  <FormControlLabel key={answer.id} value={answer.id.toString()} control={<Radio />} label={answer.answer} />
-                ))}
-              </RadioGroup>
-            </FormControl>
-          )}
+          {questions.map((question, index) => (
+            <Box key={question.id} mt={4}>
+              <Typography variant='h6' gutterBottom>
+                {index + 1}
+                {'. '}
+                {question.question}
+              </Typography>
 
-          {question.type === 'text' && (
-            <TextField variant="outlined" fullWidth label="Answer" />
-          )}
+              {question.type === 'mcq' && (
+                <FormControl component='fieldset'>
+                  <RadioGroup>
+                    {question.answers.map(answer => (
+                      <FormControlLabel
+                        key={answer.id}
+                        value={answer.id.toString()}
+                        control={<Radio />}
+                        label={answer.answer}
+                      />
+                    ))}
+                  </RadioGroup>
+                </FormControl>
+              )}
+
+              {question.type === 'text' && <TextField variant='outlined' fullWidth label='Answer' />}
+            </Box>
+          ))}
+
+          <Box mt={4}>
+            <Button variant='contained' color='primary' type='submit'>
+              Submit
+            </Button>
+          </Box>
         </Box>
-      ))}
-
-      <Box mt={4}>
-        <Button variant="contained" color="primary">
-          Submit
-        </Button>
-      </Box>
-    </div>
-  );
+      </form>
+    )
+  } else {
+    <Typography variant='h4' gutterBottom>
+      Loading...
+    </Typography>
+  }
+  return <></>
 }
 
-export default SurveyFormView;
+export default SurveyFormView

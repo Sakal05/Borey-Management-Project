@@ -77,6 +77,10 @@ const AccountSettings = () => {
         console.log(res.data.user)
         setCurrentInfo(res.data.user)
       } catch (err) {
+        if ( err.response.data.message === "Unauthenticated.") {
+          console.log("Log in pleam kdmv");
+          router.push("/pages/u/login")
+        }
         console.log(err)
       }
     }

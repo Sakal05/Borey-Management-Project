@@ -18,13 +18,9 @@ const navigation = () => {
       icon: HomeOutline,
       path: '/'
     },
+    
     {
-      title: 'Account Setting',
-      icon: AccountCogOutline,
-      path: '/account-settings'
-    },
-    {
-      sectionTitle: 'Service'
+      sectionTitle: 'Maintenance Service'
     },
     {
       title: 'General Fixing',
@@ -62,6 +58,14 @@ const navigation = () => {
       title: 'Request Form',
       icon: CreditCardOutline,
       path: '/request-form'
+    },
+    {
+      sectionTitle: 'Account Information'
+    },
+    {
+      title: 'Account Setting',
+      icon: AccountCogOutline,
+      path: '/account-settings'
     },
   ]
 }

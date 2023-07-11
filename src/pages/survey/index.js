@@ -1,5 +1,5 @@
 // ** React Imports
-import { useState, useEffect, useContext } from 'react'
+import React, { useState, useEffect, useContext } from 'react'
 
 // ** MUI Imports
 import Box from '@mui/material/Box'
@@ -13,18 +13,18 @@ import FormControl from '@mui/material/FormControl'
 import Select from '@mui/material/Select'
 import InputLabel from '@mui/material/InputLabel'
 import Button from '@mui/material/Button'
+import TextField from '@mui/material/TextField'
+import Typography from '@mui/material/Typography'
+import MenuItem from '@mui/material/MenuItem'
 
 // ** Icons Imports
-import AccountOutline from 'mdi-material-ui/AccountOutline'
+import AccountBoxOutlined from '@mui/icons-material/AccountBoxOutlined'
 
 import SurveyFormView from 'src/views/survey-form-field'
 import axios from 'axios'
 import { toast } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
 import { SettingsContext } from '../../../src/@core/context/settingsContext'
-import TextField from '@mui/material/TextField'
-import Typography from '@mui/material/Typography'
-import MenuItem from '@mui/material/MenuItem'
 
 // ** Third Party Styles Imports
 import 'react-datepicker/dist/react-datepicker.css'
@@ -51,9 +51,7 @@ const Survey = () => {
   const [value, setValue] = useState('account')
   const [surveys, setSurveys] = useState([])
   const [loading, setLoading] = useState(true)
-  const [data, setData] = useState({
-
-  })
+  const [data, setData] = useState({})
   const [selectedSurvey, setSelectedSurvey] = useState('')
 
   const handleSurveyChange = event => {
@@ -70,6 +68,8 @@ const Survey = () => {
 
   const fetchAllSurveys = async () => {
     try {
+      setLoading(true)
+
       const res = await axios({
         url: 'http://127.0.0.1:8000/api/surveys',
         method: 'GET',
@@ -78,17 +78,21 @@ const Survey = () => {
         }
       })
       console.log(res)
-      // setLoading(false)
+      setLoading(false)
       setSurveys(res.data)
     } catch (e) {
       console.error(e)
-      toast.error(e.message)
     }
   }
 
   const fetchSurveyById = async () => {
     console.log(selectedSurvey)
+    if (selectedSurvey === 'None') {
+      return
+    }
+
     try {
+      setLoading(true)
       const res = await axios({
         url: `http://127.0.0.1:8000/api/surveys/${selectedSurvey}`,
         method: 'GET',
@@ -97,12 +101,10 @@ const Survey = () => {
         }
       })
       console.log(res)
-      // setLoading(false)
       setData(res.data)
       setLoading(false)
     } catch (e) {
       console.error(e)
-      toast.error(e.message)
     }
   }
 
@@ -126,13 +128,13 @@ const Survey = () => {
             value='account'
             label={
               <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                <AccountOutline />
+                <AccountBoxOutlined />
                 <TabName>Survey Form</TabName>
               </Box>
             }
           />
         </TabList>
-        <Box mt={4}>
+        <Box m={5}>
           <TabPanel sx={{ p: 0 }} value='account'>
             <div>
               <Typography variant='h4' gutterBottom>
@@ -142,7 +144,8 @@ const Survey = () => {
               <Box mt={4}>
                 <FormControl fullWidth>
                   <InputLabel>Select a survey</InputLabel>
-                  <Select value={selectedSurvey} onChange={handleSurveyChange}>
+                  <Select label='Select Survey' value={selectedSurvey} onChange={handleSurveyChange}>
+                    {surveys.length === 0 && <MenuItem value='None'>None</MenuItem>}
                     {surveys.map(survey => (
                       <MenuItem key={survey.id} value={survey.id}>
                         {survey.title}
@@ -153,7 +156,7 @@ const Survey = () => {
               </Box>
             </div>
 
-            {!loading && (
+            {loading === false && (
               <Box mt={4}>
                 <SurveyFormView survey={data} />
               </Box>

@@ -232,6 +232,10 @@ const FormField = () => {
       setUserInfo(res.data.user)
       console.log(res)
     } catch (e) {
+      if ( e.response.data.message === "Unauthenticated.") {
+        console.log("Log in pleam kdmv");
+        router.push("/pages/u/login")
+      }
       console.log(e)
     }
   }

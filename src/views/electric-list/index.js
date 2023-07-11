@@ -147,13 +147,7 @@ const ElectricBillList = () => {
                             <MenuItem value=''>All</MenuItem>
                             <MenuItem value='success'>Success</MenuItem>
                             <MenuItem value='pending'>Pending</MenuItem>
-                            {/* {data &&
-                              data.length > 0 &&
-                              Array.from(new Set(data.map(info => info.user.companies.company_name))).map(company => (
-                                <MenuItem value={company} key={company}>
-                                  {company}
-                                </MenuItem>
-                              ))} */}
+                        
                           </Select>
                         </FormControl>
                       </TableCell>

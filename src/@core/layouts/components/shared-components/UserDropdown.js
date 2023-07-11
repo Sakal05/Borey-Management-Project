@@ -2,7 +2,7 @@
 import { useState, Fragment, useContext, useEffect } from 'react'
 
 // ** Next Import
-import { useRouter } from 'next/router'
+import { Router, useRouter } from 'next/router'
 
 // ** MUI Imports
 import Box from '@mui/material/Box'
@@ -102,6 +102,10 @@ const UserDropdown = () => {
           setCurrentUser(res.data.user.user)
           setImage_cid(`https://gateway.ipfs.io/ipfs/${res.data.user.image_cid}`)
         } catch (err) {
+          if ( err.response.data.message === "Unauthenticated.") {
+            console.log("Log in pleam kdmv");
+            router.push("/pages/u/login")
+          }
           console.log(err)
         }
       }
@@ -168,7 +172,7 @@ const UserDropdown = () => {
         </Box>
         <Divider sx={{ mt: 0, mb: 1 }} />
         <MenuItem sx={{ p: 0 }} onClick={() => handleDropdownClose()}>
-          <Box sx={styles}>
+          <Box sx={styles} onClick={() => router.push('/account-settings')}>
             <AccountOutline sx={{ marginRight: 2 }} />
             Profile
           </Box>

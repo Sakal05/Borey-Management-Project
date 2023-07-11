@@ -51,7 +51,7 @@ const ElectricBillInfoForm = () => {
         })
         console.log('electric info', res)
         if (res.data.length === 0) {
-          toast.error('No data was found')
+          toast.error('No payment found this month');
           setLoading(false)
 
           return
@@ -79,7 +79,7 @@ const ElectricBillInfoForm = () => {
         console.log(res)
 
         if (res.data.length === 0) {
-          toast.error('No data was found')
+          toast.error('No payment found this month')
           setLoading(false)
           return
         } else if (res.data[0].payment_status === 'success') {

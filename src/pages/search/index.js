@@ -60,7 +60,7 @@ const AlignItemsList = () => {
       setLoadingData(false)
     } catch (error) {
       console.error(error)
-      toast.error("Can't fetch post")
+      // toast.error("Can't fetch post")
     }
   }
 
@@ -108,77 +108,106 @@ const AlignItemsList = () => {
 
   const postResult = () => {
     const posts = []
-    searchResults.posts.original.map(item => {
-      posts.push(
-        <Grid spacing={5} m={5} key={item.id}>
-          <NewsFeedCard data={item} user_id={currentUser.user_id}></NewsFeedCard>
-        </Grid>
-      )
-    })
+
+    if (searchResults.posts.original.length === 0) {
+      posts.push(<Grid spacing={5} m={5}></Grid>)
+    } else {
+      searchResults.posts.original.map(item => {
+        posts.push(
+          <Grid spacing={5} m={5} key={item.id}>
+            <NewsFeedCard data={item} user_id={currentUser.user_id}></NewsFeedCard>
+          </Grid>
+        )
+      })
+    }
+    //original: "No data found."
 
     return posts
   }
 
   const electricBillResult = () => {
     const electricBill = []
-    searchResults.electricBills.original.map(item => {
-      electricBill.push(
-        <Fragment key={item.id}>
-          <TableRow hover role='checkbox' tabIndex={-1}>
-            <TableCell align='left'>{item.category === 'electric' ? 'Electric Bill' : 'Water Bill'}</TableCell>
-            {/* <TableCell align='left'> {format(new Date(info.created_at), 'MMM dd, yyyy')}</TableCell> */}
-            <TableCell align='left'> {moment(item.created_at).format('YYYY-MM-DD')}</TableCell>
 
-            <TableCell align='left'>{item.payment_status === 'success' ? '✅' : 'Pending'}{item.payment_status === 'pending' && <Button size='small' variant='outlined' sx={{ marginLeft: 7 }} onClick={handleClickPayNow}>Pay Now</Button>}</TableCell>
-            
-          </TableRow>
-        </Fragment>
-      )
-    })
+    if (searchResults.electricBills.original === 'No data found.') {
+      electricBill.push(<Fragment>No data match</Fragment>)
+    } else {
+      searchResults.electricBills.original.map(item => {
+        electricBill.push(
+          <Fragment key={item.id}>
+            <TableRow hover role='checkbox' tabIndex={-1}>
+              <TableCell align='left'>{item.category === 'electric' ? 'Electric Bill' : 'Water Bill'}</TableCell>
+              {/* <TableCell align='left'> {format(new Date(info.created_at), 'MMM dd, yyyy')}</TableCell> */}
+              <TableCell align='left'> {moment(item.created_at).format('YYYY-MM-DD')}</TableCell>
 
+              <TableCell align='left'>
+                {item.payment_status === 'success' ? '✅' : 'Pending'}
+                {item.payment_status === 'pending' && (
+                  <Button size='small' variant='outlined' sx={{ marginLeft: 7 }} onClick={handleClickPayNow}>
+                    Pay Now
+                  </Button>
+                )}
+              </TableCell>
+            </TableRow>
+          </Fragment>
+        )
+      })
+    }
     return electricBill
   }
 
   const formGeneralResult = () => {
     const formGeneral = []
-    searchResults.formGenerals.original.map(item => {
-      formGeneral.push(
-        <Fragment key={item.id}>
-          <TableRow hover role='checkbox' tabIndex={-1} onClick={() => handleViewDetail(item)}>
-            <TableCell align='left'>General Form</TableCell>
-            <TableCell align='left'>{item.category}</TableCell>
-            <TableCell align='left'>
-              <Button size='small' variant='outlined' sx={{ marginBottom: 7 }}>
-                View Detail
-              </Button>
-            </TableCell>
-            {/* <TableCell align='left'> {format(new Date(info.created_at), 'MMM dd, yyyy')}</TableCell> */}
-            <TableCell align='left'> {moment(item.created_at).format('YYYY-MM-DD')}</TableCell>
-            <TableCell align='left'>{item.general_status === 'done' ? '✅' : 'Pending'}</TableCell>
-          </TableRow>
-        </Fragment>
-      )
-    })
 
-    searchResults.formEnvironments.original.map(item => {
-      formGeneral.push(
-        <Fragment key={item.id}>
-          <TableRow hover role='checkbox' tabIndex={-1} onClick={() => handleViewDetail(item)}>
-            <TableCell align='left'>Environmental Form</TableCell>
-            <TableCell align='left'>{item.category}</TableCell>
-            <TableCell align='left'>
-              <Button size='small' variant='outlined' sx={{ marginBottom: 7 }}>
-                View Detail
-              </Button>
-            </TableCell>
-            {/* <TableCell align='left'> {format(new Date(info.created_at), 'MMM dd, yyyy')}</TableCell> */}
-            <TableCell align='left'> {moment(item.created_at).format('YYYY-MM-DD')}</TableCell>
+    if (searchResults.formGenerals.original === 'No data found.') {
+      formGeneral.push(<Fragment></Fragment>)
+    } else {
+      searchResults.formGenerals.original.map(item => {
+        formGeneral.push(
+          <Fragment key={item.id}>
+            <TableRow hover role='checkbox' tabIndex={-1} onClick={() => handleViewDetail(item)}>
+              <TableCell align='left'>General Form</TableCell>
+              <TableCell align='left'>{item.category}</TableCell>
+              <TableCell align='left'>
+                <Button size='small' variant='outlined' sx={{ marginBottom: 7 }}>
+                  View Detail
+                </Button>
+              </TableCell>
+              {/* <TableCell align='left'> {format(new Date(info.created_at), 'MMM dd, yyyy')}</TableCell> */}
+              <TableCell align='left'> {moment(item.created_at).format('YYYY-MM-DD')}</TableCell>
+              <TableCell align='left'>{item.general_status === 'done' ? '✅' : 'Pending'}</TableCell>
+            </TableRow>
+          </Fragment>
+        )
+      })
+    }
 
-            <TableCell align='left'>{item.environment_status}</TableCell>
-          </TableRow>
-        </Fragment>
-      )
-    })
+    if (searchResults.formEnvironments.original === 'No data found.') {
+      formGeneral.push(<Fragment></Fragment>)
+    } else {
+      searchResults.formEnvironments.original.map(item => {
+        formGeneral.push(
+          <Fragment key={item.id}>
+            <TableRow hover role='checkbox' tabIndex={-1} onClick={() => handleViewDetail(item)}>
+              <TableCell align='left'>Environmental Form</TableCell>
+              <TableCell align='left'>{item.category}</TableCell>
+              <TableCell align='left'>
+                <Button size='small' variant='outlined' sx={{ marginBottom: 7 }}>
+                  View Detail
+                </Button>
+              </TableCell>
+              {/* <TableCell align='left'> {format(new Date(info.created_at), 'MMM dd, yyyy')}</TableCell> */}
+              <TableCell align='left'> {moment(item.created_at).format('YYYY-MM-DD')}</TableCell>
+
+              <TableCell align='left'>{item.environment_status}</TableCell>
+            </TableRow>
+          </Fragment>
+        )
+      })
+    }
+
+    if (searchResults.formGenerals.original === 'No data found.' && searchResults.formEnvironments.original === 'No data found.') {
+      formGeneral.push(<Fragment>No data match</Fragment>)
+    }
 
     return formGeneral
   }
@@ -202,6 +231,10 @@ const AlignItemsList = () => {
           console.log('User Info: ', res.data.user)
           setCurrentUser(res.data.user)
         } catch (err) {
+          if (err.response.data.message === 'Unauthenticated.') {
+            console.log('Log in pleam kdmv')
+            router.push('/pages/u/login')
+          }
           console.log(err)
         }
       }
