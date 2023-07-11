@@ -57,6 +57,7 @@ Route::post('/admin/login', [AdminController::class, 'login']);
 Route::middleware(['auth:sanctum'])->group(function(){
 
     // User Routes
+    Route::get('user_infos/search', [UserinfoController::class, 'search']);
     Route::get('/loggeduser', [UserController::class, 'logged_user']);
     Route::post('/changepassword', [UserController::class, 'change_password']);
     Route::resource('user_infos', UserinfoController::class);
@@ -77,6 +78,8 @@ Route::middleware(['auth:sanctum'])->group(function(){
     Route::post('/admin/logout', [AdminController::class, 'logout']);
     Route::get('/admin/loggedadmin', [AdminController::class, 'logged_admin']);
     Route::post('/admin/changepassword', [AdminController::class, 'change_password']);
+    Route::get('/admin/getallusers', [AdminController::class, 'getAllUsers']);
+    Route::get('/admin/getallcompanies', [AdminController::class, 'getAllCompanies']);
 
     // Companies Routes
     Route::post('/company/logout', [CompaniesController::class, 'logout']);
@@ -85,30 +88,34 @@ Route::middleware(['auth:sanctum'])->group(function(){
     Route::get('/company/showCompanies', [CompaniesController::class, 'show_all_company']);
 
     //Form General Request
+    Route::get('form_generals/search', [FormGeneralController::class, 'search']);
     Route::resource('form_generals', FormGeneralController::class);
     Route::post('form_generals/{form_general}', [FormGeneralController::class, 'update'])->name('form_generals.update');
 
     //Form Environment Request
+    Route::get('form_environments/search', [FormEnvironmentController::class, 'search']);
     Route::resource('form_environments', FormEnvironmentController::class);
     Route::post('form_environments/{form_environment}', [FormEnvironmentController::class, 'update'])->name('form_environments.update');
 
     //Electric bills Request
-    Route::get('/electricbills/search', [electricbillsController::class, 'search']);
+    Route::get('electricbills/search', [electricbillsController::class, 'search']);
     Route::resource('electricbills', electricbillsController::class);
     Route::post('electricbills/{electricbill}', [electricbillsController::class, 'update'])->name('electricbills.update');
 
     //Security bills Request
+    Route::get('securitybills/search', [securitybillsController::class, 'search']);
     Route::resource('securitybills', securitybillsController::class);
     Route::post('securitybills/{securitybill}', [securitybillsController::class, 'update'])->name('securitybills.update');
 
     //Water bills Request
+    Route::get('waterbills/search', [waterbillsController::class, 'search']);
     Route::resource('waterbills', waterbillsController::class);
     Route::post('waterbills/{waterbill}', [waterbillsController::class, 'update'])->name('waterbills.update');
 
     //Request form Request
+    Route::get('requestforms/search', [RequestformController::class, 'search']);
     Route::resource('requestforms', RequestformController::class);
     Route::post('requestforms/{requestform}', [RequestformController::class, 'update'])->name('requestforms.update');
-
 
     // Survey routes
     Route::get('/surveys', [SurveyController::class, 'index']);
@@ -128,19 +135,13 @@ Route::middleware(['auth:sanctum'])->group(function(){
     Route::post('/questions/{question}/answers', [AnswerController::class, 'store']);
     Route::post('/questions/{question}/answers/{answer}', [AnswerController::class, 'update']);
     Route::delete('/questions/{question}/answers/{answer}', [AnswerController::class, 'delete']);
-
+  
     //Search Routes
     Route::get('/user_infos/search', [UserinfoController::class, 'search']);
-    Route::get('/form_generals/search', [FormGeneralController::class, 'search']);
-    Route::get('/form_environments/search', [FormEnvironmentController::class, 'search'])->name('formenvironments.search');
-    
-    Route::get('securitybills/search', [securitybillsController::class, 'search']);
-    Route::get('waterbills/search', [waterbillsController::class, 'search']);
-
-    //search function
     Route::get('/search', [SearchController::class, 'search']);
 
     //delete function
     Route::delete('/user/{id}', [UserController::class, 'destroy']);
+
 });
 

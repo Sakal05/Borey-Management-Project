@@ -9,7 +9,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use App\Models\formEnvironment;
 use App\Models\User;
-use App\Http\Resources\FormEnvironmentResource;
 use App\Models\Role;
 
 
@@ -34,9 +33,10 @@ class formEnvironmentController extends Controller
         } else if ($user->role->name === Role::USER) {
             $data = formEnvironment::where('user_id', $user->user_id)->latest()->get();
         } else if ($user->role->name === Role::ADMIN) {
-            $data = formEnvironment::with('user.companies')->latest()->get();
 
+            $data = formEnvironment::with('user.companies')->latest()->get();
         }
+
 
         return response($data, 200);
     }
@@ -59,12 +59,12 @@ class formEnvironmentController extends Controller
         $validator = Validator::make($request->all(), [
             'category' => 'required|string|max:255',
             'problem_description' => 'required',
-            'image' => 'required', // Restrict the file types and size
+            'image' => 'required',
             'environment_status' => 'required',
         ]);
 
         if ($validator->fails()) {
-            return response()->json($validator->errors());
+            return response()->json(['error' => 'Validation failed', 'errors' => $validator->errors()], 422);
         }
 
         $user = auth()->user();
@@ -79,13 +79,11 @@ class formEnvironmentController extends Controller
             'email' => $email,
             'category' => $request->category,
             'problem_description' => $request->problem_description,
-            'path' => $request->image, // Save the image path in the database
+            'path' => $request->image,
             'environment_status' => $request->environment_status,
         ]);
 
-        return response()->json($formEnvironment, 200);
-        // return response()->json(['Form created successfully.', new FormEnvironmentResource($formEnvironment)]);
-
+        return response($formEnvironment, 200);
     }
 
     /**
@@ -103,12 +101,16 @@ class formEnvironmentController extends Controller
 
         // Check if the authenticated user is the owner of the form
         $user = auth()->user();
-        if ($user->user_id !== $formEnvironment->user_id && $user->role->name !== Role::COMPANY) {
+        if ($user->role->name === Role::COMPANY && $formEnvironment->user->company_id !== $user->company_id) {
+            return response()->json('This form is not in your company record', 403);
+        }
+    
+        if ($user->role->name !== Role::COMPANY && $user->user_id !== $formEnvironment->user_id) {
             return response()->json('You are not authorized to view this form', 403);
         }
 
         return response()->json($formEnvironment, 200);
-        // return response()->json([new FormEnvironmentResource($formEnvironment)]);
+        
     }
 
     /**
@@ -126,8 +128,19 @@ class formEnvironmentController extends Controller
         $formEnvironment = formEnvironment::find($id);
 
         if (!$formEnvironment) {
-            return response()->json('Bill not found', 404);
+            return response()->json('Form not found', 404);
         }
+
+        // Check if the authenticated user is belongs to the company specified in the user table
+        if ($formEnvironment->user->company_id !== $user->company_id) {
+            return response()->json('You are not authorized to update other company form', 403);
+        }
+        
+        // Check if the authenticated user is the owner of the user info
+        if ($user->user_id !== $formEnvironment->user_id && $user->role->name !== Role::COMPANY ) {
+            return response()->json('You are not authorized to update this form', 403);
+        }
+
         // Check if the authenticated user is the owner of the form
         if ($user->role->name === Role::COMPANY) {
             $validator = Validator::make($request->all(), [
@@ -153,7 +166,7 @@ class formEnvironmentController extends Controller
             $validator = Validator::make($request->all(), [
                 'category' => 'required|string|max:255',
                 'problem_description' => 'required',
-                'path' => 'required', // Add validation for the new image
+                'path' => 'required',
             ]);
 
             if ($validator->fails()) {
@@ -189,9 +202,14 @@ class formEnvironmentController extends Controller
         $user = auth()->user();
         $formEnvironment = formEnvironment::find($id);
 
+        // Check if the authenticated user is belongs to the company specified in the user table
+        if ($formEnvironment->user->company_id !== $user->company_id) {
+            return response()->json('You are not authorized to delete other company form', 403);
+        }
+
         if ($user->user_id !== $formEnvironment->user_id && $user->role->name !== Role::COMPANY) {
-            // User is not authorized to delete this form
-            return response()->json('You are not authorized to delete this form', 403);
+        // User is not authorized to delete this form
+        return response()->json('You are not authorized to delete this form', 403);
         }
         $formEnvironment->delete();
 
@@ -206,20 +224,51 @@ class formEnvironmentController extends Controller
      */
     public function search(Request $request)
     {
+        $user = auth()->user();
         $keyword = $request->input('keyword');
 
         $query = formEnvironment::query();
 
-        // Add your search criteria based on your needs
-        $query->where('user_id', auth()->user()->user_id)
-            ->where(function ($innerQuery) use ($keyword) {
-                $innerQuery->where('username', 'like', "%$keyword%")
+        // Add your search criteria based on the user's role
+        if ($user->role->name === Role::ADMIN) {
+            // Admin can search all data
+            $query->where(function ($innerQuery) use ($keyword) {
+                $innerQuery->where('user_id', 'like', "%$keyword%")
+                    ->orWhere('username', 'like', "%$keyword%")
                     ->orWhere('fullname', 'like', "%$keyword%")
                     ->orWhere('email', 'like', "%$keyword%")
                     ->orWhere('category', 'like', "%$keyword%")
                     ->orWhere('problem_description', 'like', "%$keyword%")
                     ->orWhere('environment_status', 'like', "%$keyword%");
             });
+        } elseif ($user->role->name === Role::COMPANY) {
+            // Company can search only for the user data in their company
+            $query->whereHas('user', function ($innerQuery) use ($user, $keyword) {
+                $innerQuery->where('company_id', $user->company_id)
+                    ->where(function ($subQuery) use ($keyword) {
+                        $subQuery->where('user_id', 'like', "%$keyword%")
+                        ->orWhere('username', 'like', "%$keyword%")
+                        ->orWhere('fullname', 'like', "%$keyword%")
+                        ->orWhere('email', 'like', "%$keyword%")
+                        ->orWhere('category', 'like', "%$keyword%")
+                        ->orWhere('problem_description', 'like', "%$keyword%")
+                        ->orWhere('environment_status', 'like', "%$keyword%");
+                    });
+            });
+        } elseif ($user->role->name === Role::USER) {
+            // User can search only for their own data
+            $query->where('user_id', $user->user_id)
+                ->where(function ($innerQuery) use ($keyword) {
+                    $innerQuery->wherewhere('user_id', 'like', "%$keyword%")
+                    ->orWhere('username', 'like', "%$keyword%")
+                    ->orWhere('fullname', 'like', "%$keyword%")
+                    ->orWhere('email', 'like', "%$keyword%")
+                    ->orWhere('category', 'like', "%$keyword%")
+                    ->orWhere('problem_description', 'like', "%$keyword%")
+                    ->orWhere('environment_status', 'like', "%$keyword%");
+                });
+
+        }
         $results = $query->get();
 
         if ($results->isEmpty()) {

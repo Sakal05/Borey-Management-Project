@@ -4,9 +4,12 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Admin;
+use App\Models\Companies;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Carbon;
 use App\Models\Role;
+use App\Models\User;
+
 
 class AdminController extends Controller
 {
@@ -103,4 +106,34 @@ class AdminController extends Controller
             'status' => 'success'
         ], 200);
     }
+
+    public function getAllCompanies()
+    {
+        $admin = auth()->user();
+
+        // Check if the authenticated user is a admin
+        if ($admin->role->name !== Role::ADMIN) {
+            return response()->json(['error' => 'Only Admin can access this functionality!'], 403);
+        }
+
+        $companies = Companies::all();
+
+        return response()->json(['Companies' => $companies]);
+    }
+
+    public function getAllUsers()
+    {
+        $admin = auth()->user();
+
+        // Check if the authenticated user is an admin
+        if ($admin->role->name !== Role::ADMIN) {
+            return response()->json(['error' => 'Only Admin can access this functionality!'], 403);
+        }
+
+        // Fetch all companies along with their associated users
+        $companies = Companies::with('user')->get();
+
+        return response()->json(['companies' => $companies]);
+    }
+
 }
