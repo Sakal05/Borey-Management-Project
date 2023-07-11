@@ -23,12 +23,9 @@ class RequestformController extends Controller
         if ($user->role->name === Role::COMPANY) {
             $data = Requestform::whereHas('user', function ($query) use ($user) {
                 $query->where('company_id', $user->company_id);
-            })->latest()->get();
-        }
-        elseif ($user->role->name === Role::ADMIN) {
-            $data = Requestform::latest()->get();
-        }
-        else {
+            })->with('user')->latest()->get();
+        } else {
+
             $data = Requestform::where('user_id', $user->user_id)->latest()->get();
         }
 

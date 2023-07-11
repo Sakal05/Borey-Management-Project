@@ -22,6 +22,7 @@ use App\Http\Controllers\FormEnvironmentController;
 use App\Http\Controllers\SurveyController;
 use App\Http\Controllers\QuestionController;
 use App\Http\Controllers\AnswerController;
+use App\Http\Controllers\SearchController;
 
 /*
 |--------------------------------------------------------------------------
@@ -134,5 +135,13 @@ Route::middleware(['auth:sanctum'])->group(function(){
     Route::post('/questions/{question}/answers', [AnswerController::class, 'store']);
     Route::post('/questions/{question}/answers/{answer}', [AnswerController::class, 'update']);
     Route::delete('/questions/{question}/answers/{answer}', [AnswerController::class, 'delete']);
+  
+    //Search Routes
+    Route::get('/user_infos/search', [UserinfoController::class, 'search']);
+    Route::get('/search', [SearchController::class, 'search']);
+
+    //delete function
+    Route::delete('/user/{id}', [UserController::class, 'destroy']);
+
 });
 

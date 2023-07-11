@@ -27,17 +27,14 @@ class UserinfoController extends Controller
         if ($user->role->name === Role::COMPANY) {
             $data = User_info::whereHas('user', function ($query) use ($user) {
                 $query->where('company_id', $user->company_id);
-            })->latest()->get();
-        }
-        elseif ($user->role->name === Role::ADMIN) {
-            $data = User_info::latest()->get();
-        }
-        else {
-            $data = User_info::where('user_id', $user->user_id)->latest()->get();
+            })->with('user')->latest()->get();
+        } else if ($user->role->name === Role::USER) {
+            $data = User_Info::where('user_id', $user->user_id)->with('user')->latest()->get();
+        } else if ($user->role->name === Role::ADMIN) {
+            $data = User_Info::with('user')->latest()->get();
         }
 
         return response($data, 200);
-
     }
 
     /**
@@ -93,7 +90,7 @@ class UserinfoController extends Controller
             'street_number' => $request->street_number,
         ]);
 
-        
+
         return response()->json($userinfo, 200);
         // return response()->json(['message' => 'User Info created successfully', 'userinfo' => new UserinfoResource($userinfo)]);
     }
@@ -134,7 +131,6 @@ class UserinfoController extends Controller
             'message' => 'Logged User Data',
             'status' => 'success'
         ], 200);
-
     }
 
     /**
@@ -209,7 +205,6 @@ class UserinfoController extends Controller
         $userinfo = User_info::where('user_id', $userinfo->user_id)->with('user')->get()->firstOrFail();
 
         return response($userinfo, 200);
-
     }
 
 

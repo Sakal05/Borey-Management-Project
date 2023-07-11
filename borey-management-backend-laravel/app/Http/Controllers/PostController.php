@@ -14,6 +14,7 @@ use App\Models\postcomment;
 use App\Models\postshare;
 use Illuminate\Support\Facades\Log;
 
+use function PHPUnit\Framework\isEmpty;
 
 class PostController extends Controller
 {
@@ -24,16 +25,18 @@ class PostController extends Controller
      */
     public function index()
     {
-
-        $user = auth()->user();
-
         // Check if the authenticated user is a company
-        // if ($user->role->name === Role::COMPANY) {
-        // } else if ($user->role->name === Role::USER) {
-        //     $data = Post::with('user', 'comments.userInfo', 'userInfo')->latest()->get();
+        $user = auth()->user();
+        // if ($user->role->name !== Role::USER) {
+        //     return response("Your are not authorized to access this page", 405);
         // }
 
         $data = Post::with('user', 'comments.companies', 'comments.userInfo.user', 'userInfo', 'likes', 'shares')->latest()->get();
+
+        if ($data->isEmpty()) {
+            return response("No Data Available", 200);
+        }
+
         return response($data, 200);
     }
 

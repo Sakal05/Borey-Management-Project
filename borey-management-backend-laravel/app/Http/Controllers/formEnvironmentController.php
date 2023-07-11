@@ -29,15 +29,14 @@ class formEnvironmentController extends Controller
         if ($user->role->name === Role::COMPANY) {
             $data = formEnvironment::whereHas('user', function ($query) use ($user) {
                 $query->where('company_id', $user->company_id);
-            })->latest()->get();
-        }
-        elseif ($user->role->name === Role::ADMIN) {
-            $data = formEnvironment::with('user.companies')->latest()->get();
-
-        }
-        else {
+            })->with('user')->latest()->get();
+        } else if ($user->role->name === Role::USER) {
             $data = formEnvironment::where('user_id', $user->user_id)->latest()->get();
-        } 
+        } else if ($user->role->name === Role::ADMIN) {
+
+            $data = formEnvironment::with('user.companies')->latest()->get();
+        }
+
 
         return response($data, 200);
     }
