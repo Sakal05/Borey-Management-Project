@@ -21,7 +21,9 @@ class RequestformController extends Controller
 
         // Check if the authenticated user is a company
         if ($user->role->name === Role::COMPANY) {
-            $data = Requestform::latest()->get();
+            $data = Requestform::whereHas('user', function ($query) use ($user) {
+                $query->where('company_id', $user->company_id);
+            })->with('user')->latest()->get();
         } else {
             $data = Requestform::where('user_id', $user->user_id)->latest()->get();
         }

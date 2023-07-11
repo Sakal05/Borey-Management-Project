@@ -6,7 +6,7 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use Validator;
+use Illuminate\Support\Facades\Validator;
 use App\Models\User_info;
 use App\Models\User;
 use App\Http\Resources\UserinfoResource;
@@ -25,8 +25,9 @@ class UserinfoController extends Controller
 
         // Check if the authenticated user is a company
         if ($user->role->name === Role::COMPANY) {
-            $data = User_Info::with('user')->latest()->get();
-
+            $data = User_info::whereHas('user', function ($query) use ($user) {
+                $query->where('company_id', $user->company_id);
+            })->with('user')->latest()->get();
         } else if ($user->role->name === Role::USER) {
             $data = User_Info::where('user_id', $user->user_id)->with('user')->latest()->get();
         } else if ($user->role->name === Role::ADMIN) {
@@ -35,7 +36,6 @@ class UserinfoController extends Controller
 
 
         return response($data, 200);
-
     }
 
     /**
@@ -91,7 +91,7 @@ class UserinfoController extends Controller
             'street_number' => $request->street_number,
         ]);
 
-        
+
         return response()->json($userinfo, 200);
         // return response()->json(['message' => 'User Info created successfully', 'userinfo' => new UserinfoResource($userinfo)]);
     }
@@ -128,7 +128,6 @@ class UserinfoController extends Controller
             'message' => 'Logged User Data',
             'status' => 'success'
         ], 200);
-
     }
 
     /**
@@ -186,7 +185,6 @@ class UserinfoController extends Controller
         $userinfo = User_info::where('user_id', $userinfo->user_id)->with('user')->get()->firstOrFail();
 
         return response($userinfo, 200);
-
     }
 
 

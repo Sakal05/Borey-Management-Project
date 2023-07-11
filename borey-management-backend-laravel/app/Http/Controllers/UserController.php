@@ -136,5 +136,25 @@ class UserController extends Controller
         }
     }
 
-    
+    public function destroy($id)
+    {
+
+        // Retrieve the existing User_info record
+        $userNow = User::find($id);
+
+        if (is_null($userNow)) {
+            return response()->json('User not found', 404);
+        }
+
+        // Check if the authenticated user is the owner of the user info or a company
+        $user = auth()->user();
+        if ($user->role->name !== Role::COMPANY) {
+            return response()->json('You are not authorized to delete this user info', 403);
+        }
+
+        $userNow->delete();
+
+        return response()->json('User info deleted successfully');
+    }
+
 }

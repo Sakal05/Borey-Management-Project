@@ -139,5 +139,8 @@ Route::middleware(['auth:sanctum'])->group(function(){
 
     //search function
     Route::get('/search', [SearchController::class, 'search']);
+
+    //delete function
+    Route::delete('/user/{id}', [UserController::class, 'destroy']);
 });
 

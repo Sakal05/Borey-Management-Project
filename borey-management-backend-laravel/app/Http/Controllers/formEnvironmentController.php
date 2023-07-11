@@ -6,7 +6,7 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use Validator;
+use Illuminate\Support\Facades\Validator;
 use App\Models\formEnvironment;
 use App\Models\User;
 use App\Http\Resources\FormEnvironmentResource;
@@ -28,7 +28,9 @@ class formEnvironmentController extends Controller
 
         // Check if the authenticated user is a company
         if ($user->role->name === Role::COMPANY) {
-            $data = formEnvironment::latest()->get();
+            $data = formEnvironment::whereHas('user', function ($query) use ($user) {
+                $query->where('company_id', $user->company_id);
+            })->with('user')->latest()->get();
         } else if ($user->role->name === Role::USER) {
             $data = formEnvironment::where('user_id', $user->user_id)->latest()->get();
         } else if ($user->role->name === Role::ADMIN) {
