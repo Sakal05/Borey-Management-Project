@@ -280,16 +280,6 @@ const LoginPage = () => {
                 justifyContent: 'center'
               }}
             >
-              <Typography variant='body1'>
-                Log in as
-                <Link passHref href='/pages/c/login'>
-                  <LinkStyled>&nbsp;COMPANY&nbsp;</LinkStyled>
-                </Link>
-                or
-                <Link passHref href='/pages/a/login'>
-                  <LinkStyled>&nbsp;ADMIN&nbsp;</LinkStyled>
-                </Link>
-              </Typography>
 
               <Typography variant='body2' sx={{ marginTop: 4 }}>
                 New on our platform?

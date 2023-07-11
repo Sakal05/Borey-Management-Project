@@ -24,7 +24,8 @@ import { useRouter } from 'next/router'
 import axios from 'axios'
 import MenuItem from '@mui/material/MenuItem'
 import Select from '@mui/material/Select'
-
+import { toast } from 'react-toastify'
+import 'react-toastify/dist/ReactToastify.css'
 // ** Icons Imports
 import Google from 'mdi-material-ui/Google'
 import Github from 'mdi-material-ui/Github'
@@ -158,6 +159,7 @@ const RegisterPage = () => {
       // console.log(formData);
 
       const response = await axios.post('http://127.0.0.1:8000/api/register', userInfo)
+      console.log(response)
       // console.log(response);
       if (response.data.status == 'success') {
         // console.log(response.data.token);
@@ -165,6 +167,9 @@ const RegisterPage = () => {
         // setAuthToken(t);
         // Redirect to a new page
         router.push('login')
+      } else if (response.data.message === 'Email already exists') {
+        toast.error('Email already exists')
+        return
       }
     } catch (err) {
       alert(err.message)

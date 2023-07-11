@@ -64,8 +64,12 @@ const NewsFeed = () => {
         }
       })
       console.log('All cards: ', res.data)
-      setNewFeedData(res.data)
-      setLoadingData(false)
+      if (res.data !== 'No Data Available') {
+        setNewFeedData(res.data)
+        setLoadingData(false)
+      } else {
+        setLoadingData(false)
+      }
     } catch (error) {
       console.error(error)
       toast.error("Can't fetch post")
@@ -98,9 +102,9 @@ const NewsFeed = () => {
           console.log('User Info: ', res.data.user)
           setCurrentUser(res.data.user)
         } catch (err) {
-          if ( err.response.data.message === "Unauthenticated.") {
-            console.log("Log in pleam kdmv");
-            router.push("/pages/u/login")
+          if (err.response.data.message === 'Unauthenticated.') {
+            console.log('Log in pleam kdmv')
+            router.push('/pages/u/login')
           }
           console.log(err)
         }
@@ -188,13 +192,26 @@ const NewsFeed = () => {
               </TabList>
 
               <TabPanel value='1' sx={{ p: 0 }}>
-                {newFeedData
-                  // .filter(data => data.promotion === 'false')
-                  .map(data => (
-                    <Grid spacing={5} m={5} key={data.id}>
-                      <NewsFeedCard data={data} user_id={currentUser.user_id}></NewsFeedCard>
-                    </Grid>
-                  ))}
+                {newFeedData.length > 0 ? (
+                  newFeedData
+                    // .filter(data => data.promotion === 'false')
+                    .map(data => (
+                      <Grid spacing={5} m={5} key={data.newFeedId}>
+                        {console.log(newFeedData.length)}
+                        <NewsFeedCard data={data} user_id={currentUser.company_id}></NewsFeedCard>
+                      </Grid>
+                    ))
+                ) : (
+                  <Grid
+                    spacing={5}
+                    m={5}
+                    sx={{ position: 'absolute', top: '70%', left: '50%', transform: 'translate(-50%, -50%)' }}
+                  >
+                    <Typography marginTop={10} variant='h3'>
+                      No posts yet
+                    </Typography>
+                  </Grid>
+                )}
               </TabPanel>
               <TabPanel value='2' sx={{ p: 0 }}>
                 {newFeedData.length > 0 ? (
